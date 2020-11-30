@@ -1,0 +1,20 @@
+{
+	"name": "deleteLS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "testblob",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "01.txt",
+				"folderPath": "sales/2016/01",
+				"container": "helo"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

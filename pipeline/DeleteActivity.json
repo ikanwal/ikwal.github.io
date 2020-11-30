@@ -1,0 +1,46 @@
+{
+	"name": "DeleteActivity",
+	"properties": {
+		"activities": [
+			{
+				"name": "Delete",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "files",
+						"value": "txt files to delete "
+					}
+				],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "deleteLS",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "testblob",
+							"type": "LinkedServiceReference"
+						},
+						"path": "helo/sales/2016/01"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": false
+					}
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-06-15T03:34:14Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

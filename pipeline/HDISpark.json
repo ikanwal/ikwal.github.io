@@ -1,0 +1,35 @@
+{
+	"name": "HDISpark",
+	"properties": {
+		"activities": [
+			{
+				"name": "Spark1",
+				"type": "HDInsightSpark",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"rootPath": "myhdi-2020-06-20t03-19-14-771z/hive",
+					"entryFilePath": "warehouse",
+					"sparkJobLinkedService": {
+						"referenceName": "testblob",
+						"type": "LinkedServiceReference"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "HDILS",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-06-21T02:14:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

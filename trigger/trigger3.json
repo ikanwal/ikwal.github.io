@@ -1,0 +1,27 @@
+{
+	"name": "trigger3",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipeline": {
+			"pipelineReference": {
+				"referenceName": "CopPipeline_45_copy2",
+				"type": "PipelineReference"
+			}
+		},
+		"type": "TumblingWindowTrigger",
+		"typeProperties": {
+			"frequency": "Minute",
+			"interval": 15,
+			"startTime": "2020-05-13T15:00:00Z",
+			"endTime": "2020-05-14T14:44:00Z",
+			"delay": "00:00:00",
+			"maxConcurrency": 1,
+			"retryPolicy": {
+				"count": 2,
+				"intervalInSeconds": 600
+			},
+			"dependsOn": []
+		}
+	}
+}

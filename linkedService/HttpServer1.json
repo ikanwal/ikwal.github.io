@@ -1,0 +1,15 @@
+{
+	"name": "HttpServer1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://jsonplaceholder.typicode.com/posts/1",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": "admin",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIlRFU1RORVdBREYxX2M4YjY3Y2U2LTdkNWMtNGUxNi1iYzZhLWQ0NTc0ZWI5MjBjNiINCn0="
+		}
+	}
+}

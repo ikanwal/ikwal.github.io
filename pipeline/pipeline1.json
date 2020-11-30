@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy data1",
-				"type": "Copy",
+				"name": "Execute SSIS package1",
+				"type": "ExecuteSSISPackage",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -15,10 +15,21 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"enableStaging": false
+					"packageLocation": {
+						"packagePath": "package/Integration Services Project3/Package1.dtsx",
+						"type": "SSISDB"
+					},
+					"environmentPath": null,
+					"connectVia": {
+						"referenceName": "integrationRuntime1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"loggingLevel": "Basic"
 				}
 			}
 		],
-		"annotations": []
-	}
+		"annotations": [],
+		"lastPublishTime": "2020-04-05T06:15:51Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
 }

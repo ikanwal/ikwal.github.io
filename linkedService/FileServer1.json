@@ -1,0 +1,17 @@
+{
+	"name": "FileServer1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "C:\\Users\\v-irajk\\Documents\\DAT223.3x (1)\\sales\\2016\\01",
+			"userId": "v-irajk@microsoft.com",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIyNzIzYjg2ZS0wN2MxLTQ3NDItYTYyZC03MzE1OTYzOWVmMGEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "integrationRuntime2",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
