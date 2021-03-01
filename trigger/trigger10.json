@@ -1,0 +1,17 @@
+{
+	"name": "trigger10",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/newconatiner/blobs/",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/318d963f-ba17-4af1-9ad4-8f67f75e45e7/resourceGroups/resourcegroupmicrosub/providers/Microsoft.Storage/storageAccounts/adlsgen2datamodelling",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

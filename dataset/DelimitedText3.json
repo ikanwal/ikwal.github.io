@@ -2,7 +2,7 @@
 	"name": "DelimitedText3",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "testblob",
+			"referenceName": "AzureBlobStorage1",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
@@ -10,26 +10,42 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "02.txt",
-				"folderPath": "sales/2016/02",
-				"container": "helo"
+				"fileName": "SSIS data.csv",
+				"folderPath": "New Directory",
+				"container": "bolbstoragemicrosub"
 			},
-			"columnDelimiter": "\t",
+			"columnDelimiter": ",",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
 		"schema": [
 			{
+				"name": "cdatetime",
 				"type": "String"
 			},
 			{
+				"name": "address",
 				"type": "String"
 			},
 			{
+				"name": "district",
 				"type": "String"
 			},
 			{
+				"name": "beat",
+				"type": "String"
+			},
+			{
+				"name": "grid",
+				"type": "String"
+			},
+			{
+				"name": "crimedescr",
+				"type": "String"
+			},
+			{
+				"name": "ucr_ncic_code",
 				"type": "String"
 			}
 		]

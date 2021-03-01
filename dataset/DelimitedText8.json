@@ -2,29 +2,27 @@
 	"name": "DelimitedText8",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "dhara",
+			"referenceName": "AzureBlobStorage1",
 			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"containerName": {
-				"type": "string"
-			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"container": {
-					"value": "@dataset().containerName",
-					"type": "Expression"
-				}
+				"fileName": "newdata.txt",
+				"folderPath": "New Directory",
+				"container": "bolbstoragemicrosub"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
 			"quoteChar": "\""
 		},
-		"schema": []
+		"schema": [
+			{
+				"type": "String"
+			}
+		]
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }

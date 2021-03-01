@@ -2,33 +2,26 @@
 	"name": "DelimitedText5",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "testblob",
+			"referenceName": "AzureBlobStorage1",
 			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"containerName": {
-				"type": "string"
-			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "*.txt",
-				"container": {
-					"value": "@dataset().containerName",
-					"type": "Expression"
-				}
+				"fileName": "Cuenta Columns examination.csv",
+				"folderPath": "New Directory",
+				"container": "bolbstoragemicrosub"
 			},
-			"columnDelimiter": "\t",
+			"columnDelimiter": ",",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
 		"schema": [
 			{
-				"name": "OrderDate\tOrderID\tCustomerID\tCustomerName\tOrderLineID\tStockItemID\tStockItemName\tQuantity\tUnitPrice",
+				"name": "Cuenta_Accounts",
 				"type": "String"
 			}
 		]

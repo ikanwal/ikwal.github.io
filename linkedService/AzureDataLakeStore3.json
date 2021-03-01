@@ -1,0 +1,16 @@
+{
+	"name": "AzureDataLakeStore3",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDataLakeStore",
+		"typeProperties": {
+			"dataLakeStoreUri": "https://adlsgen1345.azuredatalakestore.net/webhdfs/v1",
+			"servicePrincipalId": "73f71cb4-bd9f-423c-8323-c23719c194df",
+			"tenant": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+			"subscriptionId": "318d963f-ba17-4af1-9ad4-8f67f75e45e7",
+			"resourceGroupName": "resourcegroupmicrosub",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIk5FV0RBVEFGQUNUT1JZMTIxXzFiZjc5ODZjLWEyMWQtNGZjYi05ZmJlLWUxNDJhOTMyYTNlZiINCn0="
+		}
+	}
+}

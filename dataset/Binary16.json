@@ -1,0 +1,19 @@
+{
+	"name": "Binary16",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage43",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "datatesting/outputfiles",
+				"fileSystem": "newcontainer"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

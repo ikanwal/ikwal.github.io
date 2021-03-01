@@ -1,0 +1,48 @@
+{
+	"name": "AzureSynapseAnalyticsTable7",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalytics4",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "cddatetime",
+				"type": "date"
+			},
+			{
+				"name": "adres",
+				"type": "nvarchar"
+			},
+			{
+				"name": "district",
+				"type": "nvarchar"
+			},
+			{
+				"name": "beat",
+				"type": "nvarchar"
+			},
+			{
+				"name": "gro",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "crimedescr",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ucrcode",
+				"type": "bigint",
+				"precision": 19
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "testing"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

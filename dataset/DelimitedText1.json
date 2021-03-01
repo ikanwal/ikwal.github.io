@@ -2,24 +2,34 @@
 	"name": "DelimitedText1",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "FileServer1",
+			"referenceName": "AzureBlobStorage1",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "FileServerLocation",
-				"fileName": "01.txt"
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Salary.txt",
+				"folderPath": "New Directory",
+				"container": "bolbstoragemicrosub"
 			},
-			"columnDelimiter": "\t",
+			"columnDelimiter": ",",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
 		"schema": [
 			{
-				"name": "OrderDate\tOrderID\tCustomerID\tCustomerName\tOrderLineID\tStockItemID\tStockItemName\tQuantity\tUnitPrice",
+				"name": "id",
+				"type": "String"
+			},
+			{
+				"name": "Name",
+				"type": "String"
+			},
+			{
+				"name": "Salary",
 				"type": "String"
 			}
 		]

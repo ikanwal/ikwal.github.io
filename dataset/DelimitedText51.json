@@ -1,0 +1,37 @@
+{
+	"name": "DelimitedText51",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage33",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "testingdataalert2020"
+			},
+			"columnDelimiter": ",",
+			"rowDelimiter": "/r/n",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "first_name",
+				"type": "String"
+			},
+			{
+				"name": "last_name",
+				"type": "String"
+			},
+			{
+				"name": "gender",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,11 @@
+{
+	"name": "AzureDataLakeStorage11",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://adlsnewtest.dfs.core.windows.net"
+		}
+	}
+}

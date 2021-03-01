@@ -1,0 +1,10 @@
+{
+	"name": "AzureDataLakeStorage2",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/318d963f-ba17-4af1-9ad4-8f67f75e45e7/resourceGroups/resourcegroupmicrosub/providers/Microsoft.Storage/storageAccounts/resourcegroupmicrosubdia",
+		"groupId": "dfs",
+		"fqdns": [
+			"resourcegroupmicrosubdia.dfs.core.windows.net"
+		]
+	}
+}

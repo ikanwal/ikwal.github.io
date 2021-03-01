@@ -1,0 +1,19 @@
+{
+	"name": "testinggen2triiger",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 20
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-09-16T18:12:31Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

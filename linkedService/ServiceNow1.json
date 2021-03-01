@@ -1,0 +1,21 @@
+{
+	"name": "ServiceNow1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "ServiceNow",
+		"typeProperties": {
+			"endpoint": "https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2Furldefense.proofpoint.com%2Fv2%2Furl%3Fu%3Dhttps-3A__nam06.safelinks.protection.outlook.com_-3Furl-3Dhttps-253A-252F-252Fhcaservicecentraldev.service-2Dnow.com-252Fapi-252Fnow-252Ftable-252Fincident-253Fsysparm-5Fquery-253Dopened-5FatON2020-2D02-2D25-2540javascript-253Ags.dateGenerate-28-2525272020-2D02-2D25-252527-252C-252527start-252527-29-2540javascript-253Ags.dateGenerate-28-2525272020-2D02-2D25-252527-252C-252527end-252527-29-26data-3D02-257C01-257Ckaran.arora-2540microsoft.com-257C5912b50fa2c2460539db08d8334992cc-257C72f988bf86f141af91ab2d7cd011db47-257C1-257C0-257C637315738381693883-26sdata-3DtHrKjnUNtaHFgZBqea95SYsvSLG5o2y8wOTHV0ESXtg-253D-26reserved-3D0%26d%3DDwMGaQ%26c%3D9fZnZOgPWmHmvevlab4V4ACvAaDFtZMPz_DO6BvzAJI%26r%3DC9lD4k_AH2qb0a607acvn1BvvKy9ov9je4tw44hiVZw%26m%3DoxwygQ9iY_YOK41M8xgt4tF--j1Vhu2rI9PV5wkxM8c%26s%3DuejE7Vm7k6m_UHFwck3QU6EsTbBnUmivWT5oex8doGg%26e%3D&data=02%7C01%7CKaran.Arora%40microsoft.com%7Cac6a2fec58cd44b4f58708d8334a7abd%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C637315742274760687&sdata=eLUQqNvgKoC5yjyva4zr9OW3kx%2Fe8MrIxJYclB1URME%3D&reserved=0",
+			"authenticationType": "Basic",
+			"username": "kaaro",
+			"useEncryptedEndpoints": true,
+			"useHostVerification": true,
+			"usePeerVerification": true,
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIxZGRiOWJlNy0zNjI5LTRmNDgtODNjYy0wYzA0YzlhM2U4YzQiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "Ir-Netmon",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

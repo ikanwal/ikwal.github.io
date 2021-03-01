@@ -1,0 +1,53 @@
+{
+	"name": "DelimitedText36",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureFileStorage2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureFileStorageLocation",
+				"fileName": "TEstingdatanew.csv",
+				"folderPath": "new directory"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "cdatetime",
+				"type": "String"
+			},
+			{
+				"name": "address",
+				"type": "String"
+			},
+			{
+				"name": "district",
+				"type": "String"
+			},
+			{
+				"name": "beat",
+				"type": "String"
+			},
+			{
+				"name": "grid",
+				"type": "String"
+			},
+			{
+				"name": "crimedescr",
+				"type": "String"
+			},
+			{
+				"name": "ucr_ncic_code",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

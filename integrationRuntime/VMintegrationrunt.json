@@ -1,0 +1,6 @@
+{
+	"name": "VMintegrationrunt",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

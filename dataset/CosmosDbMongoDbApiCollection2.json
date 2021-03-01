@@ -1,0 +1,16 @@
+{
+	"name": "CosmosDbMongoDbApiCollection2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CosmosDbMongoDbApi2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CosmosDbMongoDbApiCollection",
+		"schema": [],
+		"typeProperties": {
+			"collection": "accesscodes"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

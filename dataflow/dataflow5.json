@@ -1,0 +1,32 @@
+{
+	"name": "dataflow5",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText9",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText10",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Select1"
+				}
+			],
+			"script": "source(output(\n\t\tpolicyID as string,\n\t\tstatecode as string,\n\t\tcounty as string,\n\t\teq_site_limit as string,\n\t\thu_site_limit as string,\n\t\tfl_site_limit as string,\n\t\tfr_site_limit as string,\n\t\tline as string,\n\t\tconstruction as string,\n\t\tpoint_granularity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource1 select(mapColumn(\n\t\tpolicyID,\n\t\tstatecode,\n\t\tcounty,\n\t\teq_site_limit\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 sink(input(\n\t\tpolicyID as string,\n\t\tstatecode as string,\n\t\tcounty as string,\n\t\teq_site_limit as string,\n\t\thu_site_limit as string,\n\t\tfl_site_limit as string,\n\t\tfr_site_limit as string,\n\t\ttiv_2011 as string,\n\t\ttiv_2012 as string,\n\t\teq_site_deductible as string,\n\t\thu_site_deductible as string,\n\t\tfl_site_deductible as string,\n\t\tfr_site_deductible as string,\n\t\tpoint_latitude as string,\n\t\tpoint_longitude as string,\n\t\tline as string,\n\t\tconstruction as string,\n\t\tpoint_granularity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> sink1"
+		}
+	}
+}

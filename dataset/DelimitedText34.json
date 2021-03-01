@@ -1,0 +1,24 @@
+{
+	"name": "DelimitedText34",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage18",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "staging",
+				"folderPath": "amshbase",
+				"container": "hdnewclusterspark-2019-10-02t16-05-51-816z"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

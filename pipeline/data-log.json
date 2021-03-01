@@ -1,0 +1,138 @@
+{
+	"name": "data-log",
+	"properties": {
+		"activities": [
+			{
+				"name": "logs-data",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BUSINESS_CENTER_CODE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Segment",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ITEM_CODE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Country",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_NUMBER",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MODEL_DESCRIPTION",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Discount Band",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_FAMILY",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Units Sold",
+									"type": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "GBIC_CODE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Manufacturing Price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "RSS_FAMILY",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sale Price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "RSS_LINE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Gross Sales",
+									"type": "Decimal"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText50",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSqlTable14",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-06-05T21:49:16Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

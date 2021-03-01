@@ -1,0 +1,19 @@
+{
+	"name": "Binary15",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage42",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "1GB.zip",
+				"fileSystem": "newcontainer"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

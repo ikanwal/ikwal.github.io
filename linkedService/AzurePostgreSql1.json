@@ -1,0 +1,12 @@
+{
+	"name": "AzurePostgreSql1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzurePostgreSql",
+		"typeProperties": {
+			"connectionString": "host=newserverpostgres.postgres.database.azure.com;port=5432;database=postgres;uid=kaaro@newserverpostgres;encryptionmethod=1;validateservercertificate=0",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIk5FV0RBVEFGQUNUT1JZMTIxX2E1ZTBmYmE1LTE5NzYtNDUyMC04MjJkLTkwZDQxMWM0YzU3NiINCn0="
+		}
+	}
+}

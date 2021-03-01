@@ -1,0 +1,19 @@
+{
+	"name": "Binary19",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage47",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "newdata",
+				"fileSystem": "adfstagedpolybasetempdata"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

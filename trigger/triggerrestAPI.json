@@ -1,0 +1,24 @@
+{
+	"name": "triggerrestAPI",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline61",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 1,
+				"startTime": "2020-06-16T21:28:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

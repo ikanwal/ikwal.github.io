@@ -1,0 +1,6 @@
+{
+	"name": "selfhostedIRvirtualmachine",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

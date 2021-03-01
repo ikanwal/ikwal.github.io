@@ -1,0 +1,14 @@
+{
+	"name": "HDFSLinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Hdfs",
+		"typeProperties": {
+			"url": "http://hdclustertestingadf.azurehdinsight.net:50070/webhdfs/v1/",
+			"authenticationType": "Anonymous",
+			"userName": "hadoop",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIk5FV0RBVEFGQUNUT1JZMTIxX2NiMWI3YzdmLWVjYTEtNDk0Yy1iNGIxLWNlYTIzMzAwODdiMSINCn0="
+		}
+	}
+}

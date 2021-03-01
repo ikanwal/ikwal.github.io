@@ -1,0 +1,34 @@
+{
+	"name": "pipeline64",
+	"properties": {
+		"activities": [
+			{
+				"name": "dataflow17",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow17",
+						"type": "DataFlowReference"
+					},
+					"integrationRuntime": {
+						"referenceName": "privateenpint",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-08-10T21:52:04Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,11 @@
+{
+	"name": "AzureDataLakeStorage44",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://adlsgen2datamodelling.dfs.core.windows.net"
+		}
+	}
+}

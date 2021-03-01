@@ -1,0 +1,20 @@
+{
+	"name": "AzureDataLakeStore6",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDataLakeStore",
+		"typeProperties": {
+			"dataLakeStoreUri": "https://adlsgen1test121.azuredatalakestore.net/webhdfs/v1",
+			"servicePrincipalId": "73f71cb4-bd9f-423c-8323-c23719c194df",
+			"tenant": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+			"subscriptionId": "318d963f-ba17-4af1-9ad4-8f67f75e45e7",
+			"resourceGroupName": "resourcegroupmicrosub",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI2ZDVlNWY5ZC1iZWI4LTQzNjktODFlZC03N2VlZmVlMTgxMWMiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "integrationRuntimeSelfhosted",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

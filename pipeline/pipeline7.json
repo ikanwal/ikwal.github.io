@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Get Metadata1",
-				"type": "GetMetadata",
+				"name": "AzureCloudtoonPrem",
+				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -15,83 +15,93 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataset": {
-						"referenceName": "metadata1",
-						"type": "DatasetReference"
+					"source": {
+						"type": "AzureSqlSource",
+						"partitionOption": "None"
 					},
-					"fieldList": [
-						"childItems"
-					],
-					"storeSettings": {
-						"type": "AzureBlobStorageReadSettings",
-						"recursive": true
+					"sink": {
+						"type": "SqlServerSink",
+						"tableOption": "autoCreate"
 					},
-					"formatSettings": {
-						"type": "DelimitedTextReadSettings"
-					}
-				}
-			},
-			{
-				"name": "ForEach1",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "Get Metadata1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('Get Metadata1').output.childItems",
-						"type": "Expression"
-					},
-					"isSequential": true,
-					"activities": [
-						{
-							"name": "Get Metadata2",
-							"type": "GetMetadata",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date"
+								},
+								"sink": {
+									"name": "Date"
+								}
 							},
-							"userProperties": [],
-							"typeProperties": {
-								"dataset": {
-									"referenceName": "DelimitedText8",
-									"type": "DatasetReference",
-									"parameters": {
-										"containerName": {
-											"value": "@item().name",
-											"type": "Expression"
-										}
-									}
+							{
+								"source": {
+									"name": "address"
 								},
-								"fieldList": [
-									"childItems",
-									"itemName"
-								],
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true
+								"sink": {
+									"name": "address"
+								}
+							},
+							{
+								"source": {
+									"name": "District"
 								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
+								"sink": {
+									"name": "District"
+								}
+							},
+							{
+								"source": {
+									"name": "beat"
+								},
+								"sink": {
+									"name": "beat"
+								}
+							},
+							{
+								"source": {
+									"name": "grid"
+								},
+								"sink": {
+									"name": "grid"
+								}
+							},
+							{
+								"source": {
+									"name": "crimedesr"
+								},
+								"sink": {
+									"name": "descr"
+								}
+							},
+							{
+								"source": {
+									"name": "code"
+								},
+								"sink": {
+									"name": "code"
 								}
 							}
-						}
-					]
-				}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSqlTable",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServeronprem",
+						"type": "DatasetReference"
+					}
+				]
 			}
 		],
 		"annotations": [],
-		"lastPublishTime": "2020-09-30T22:00:50Z"
+		"lastPublishTime": "2019-10-04T15:54:56Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

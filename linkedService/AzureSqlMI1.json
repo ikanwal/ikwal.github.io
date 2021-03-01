@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlMI1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlMI",
+		"typeProperties": {
+			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=managedinstancedata.5b62310e1566.database.windows.net;initial catalog=testdatabase;user id=kaaro",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI1MzFlOGRhNS1kMGUyLTQxZTMtYTczNC1lNWQzYzFjNjZlZWUiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "selfhostedIRvirtualmachine",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,28 @@
+{
+	"name": "DelimitedText39",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage23",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "1500000 Sales Records.csv",
+				"container": "bolbstoragemicrosub"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

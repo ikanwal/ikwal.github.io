@@ -1,0 +1,51 @@
+{
+	"name": "AzureSqlDWTable3",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDW4",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "address",
+				"type": "nvarchar"
+			},
+			{
+				"name": "District",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "beat",
+				"type": "nvarchar"
+			},
+			{
+				"name": "grid",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "crimedesr",
+				"type": "nvarchar"
+			},
+			{
+				"name": "code",
+				"type": "bigint",
+				"precision": 19
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "data1"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

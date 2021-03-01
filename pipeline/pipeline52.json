@@ -1,0 +1,46 @@
+{
+	"name": "pipeline52",
+	"properties": {
+		"activities": [
+			{
+				"name": "dataflow11",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow11",
+						"type": "DataFlowReference",
+						"parameters": {
+							"timezone": {
+								"value": "'@{pipeline().parameters.timezone}'",
+								"type": "Expression"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"timezone": {
+				"type": "string",
+				"defaultValue": "CST"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2020-04-13T17:47:09Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

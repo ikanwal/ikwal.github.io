@@ -1,0 +1,41 @@
+{
+	"name": "pipeline39",
+	"properties": {
+		"activities": [
+			{
+				"name": "Delete1",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DelimitedText36",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"path": "sparkjobs"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureFileStorageReadSettings",
+						"recursive": false
+					}
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-02-02T22:46:13Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,29 @@
+{
+	"name": "WranglingDataFlow2",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "DelimitedText45",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~>  DelimitedText45",
+					"dataset": {
+						"referenceName": "DelimitedText45",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"sinks": [
+				{
+					"name": "Sink1",
+					"dataset": {
+						"referenceName": "AzureSqlTable9",
+						"type": "DatasetReference"
+					},
+					"script": "sink(input(\n\t\tSegment as string,\n\t\tCountry as string,\n\t\tProduct as string,\n\t\t{Discount Band} as string,\n\t\t{Units Sold} as double,\n\t\t{Manufacturing Price} as decimal(19,4),\n\t\t{Sale Price} as decimal(19,4),\n\t\t{Gross Sales} as decimal(19,4),\n\t\tDiscounts as decimal(19,4),\n\t\t{ Sales} as decimal(19,4),\n\t\tCOGS as decimal(19,4),\n\t\tProfit as decimal(19,4),\n\t\tDate as timestamp,\n\t\t{Month Number} as double,\n\t\t{Month Name} as string,\n\t\tYear as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> Sink1"
+				}
+			],
+			"script": "section Section1;\r\nshared DelimitedText45 = let\r\n  AdfDoc = AzureStorage.BlobContents(\"https://storagenicrosub.blob.core.windows.net/bolbstoragemicrosub/incompatiablerows.csv\"),\r\n  Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]),\r\n  PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true])\r\nin\r\n  PromotedHeaders;\r\nshared UserQuery = let\r\n  Source = DelimitedText45,\r\n  #\"Grouped rows\" = Table.Group(Source, {\"salary\"}, {{\"Count\", each Table.RowCount(_), type number}}),\r\n  #\"Inserted conditional column\" = Table.AddColumn(#\"Grouped rows\", \"Custom\", each if [salary] = \"80000\" then 1 else 0)\r\nin\r\n  #\"Inserted conditional column\";\r\n"
+		}
+	}
+}

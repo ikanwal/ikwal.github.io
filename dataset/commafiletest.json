@@ -1,0 +1,57 @@
+{
+	"name": "commafiletest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Commafile_test",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "PRODUCT_RSS_FAMILY_MAPPING_Sample.csv",
+				"container": "bolbstoragemicrosub"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "/",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "BUSINESS_CENTER_CODE",
+				"type": "String"
+			},
+			{
+				"name": "ITEM_CODE",
+				"type": "String"
+			},
+			{
+				"name": "PRODUCT_NUMBER",
+				"type": "String"
+			},
+			{
+				"name": "MODEL_DESCRIPTION",
+				"type": "String"
+			},
+			{
+				"name": "PRODUCT_FAMILY",
+				"type": "String"
+			},
+			{
+				"name": "GBIC_CODE",
+				"type": "String"
+			},
+			{
+				"name": "RSS_FAMILY",
+				"type": "String"
+			},
+			{
+				"name": "RSS_LINE",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,63 @@
+{
+	"name": "Webactivity",
+	"properties": {
+		"activities": [
+			{
+				"name": "test1",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ADLSgen2toADWpolybase",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "test1",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-30.eastus2.logic.azure.com:443/workflows/4528e54e6fa14a4ba9abbc40bc16d871/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0Kw_5R5xUNdMuttoX4DTd7izkUaNDKylNNXuW_i2E2o",
+					"method": "POST",
+					"headers": {
+						"Content-type": "application/json"
+					},
+					"body": {
+						"PipelineName": "@{pipeline().Pipeline}",
+						"PipelineId": "@{pipeline().RunId}",
+						"Error": "@{activity('test1').error.message}"
+					}
+				}
+			}
+		],
+		"variables": {
+			"checkifFail": {
+				"type": "Boolean"
+			}
+		},
+		"folder": {
+			"name": "BM-Test"
+		},
+		"annotations": [],
+		"lastPublishTime": "2019-12-20T17:51:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,58 @@
+{
+	"name": "dataflow3",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText3",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "DelimitedText2",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				},
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "source3"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText4",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Select1"
+				},
+				{
+					"name": "Select2"
+				},
+				{
+					"name": "Select3"
+				},
+				{
+					"name": "Join1"
+				},
+				{
+					"name": "Join2"
+				}
+			],
+			"script": "source(output(\n\t\tcdatetime as string,\n\t\taddress as string,\n\t\tdistrict as string,\n\t\tbeat as string,\n\t\tgrid as string,\n\t\tcrimedescr as string,\n\t\tucr_ncic_code as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource(output(\n\t\tpolicyID as string,\n\t\tstatecode as string,\n\t\tcounty as string,\n\t\teq_site_limit as string,\n\t\thu_site_limit as string,\n\t\tfl_site_limit as string,\n\t\tfr_site_limit as string,\n\t\ttiv_2011 as string,\n\t\ttiv_2012 as string,\n\t\teq_site_deductible as string,\n\t\thu_site_deductible as string,\n\t\tfl_site_deductible as string,\n\t\tfr_site_deductible as string,\n\t\tpoint_latitude as string,\n\t\tpoint_longitude as string,\n\t\tline as string,\n\t\tconstruction as string,\n\t\tpoint_granularity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source2\nsource(output(\n\t\tid as string,\n\t\tName as string,\n\t\tSalary as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source3\nsource1 select(mapColumn(\n\t\tcdatetime,\n\t\taddress\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nsource2 select(mapColumn(\n\t\tpolicyID,\n\t\tstatecode,\n\t\tcounty\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select2\nsource3 select(mapColumn(\n\t\tid,\n\t\tName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select3\nSelect1, Select2 join(cdatetime == policyID,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> Join1\nJoin1, Select3 join(cdatetime == Name,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> Join2\nJoin2 sink(input(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string,\n\t\tColumn_5 as string,\n\t\tColumn_6 as string,\n\t\tColumn_7 as string,\n\t\tColumn_8 as string,\n\t\tColumn_9 as string,\n\t\tColumn_10 as string,\n\t\tColumn_11 as string,\n\t\tColumn_12 as string,\n\t\tColumn_13 as string,\n\t\tColumn_14 as string,\n\t\tColumn_15 as string,\n\t\tColumn_16 as string,\n\t\tColumn_17 as string,\n\t\tColumn_18 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> sink1"
+		}
+	}
+}

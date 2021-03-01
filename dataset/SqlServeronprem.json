@@ -1,0 +1,17 @@
+{
+	"name": "SqlServeronprem",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServeronprem",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "crime_records"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

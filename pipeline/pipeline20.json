@@ -1,0 +1,143 @@
+{
+	"name": "pipeline20",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"path": "sparkjobs"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "cdatetime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "address",
+									"type": "String"
+								},
+								"sink": {
+									"name": "address",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "district",
+									"type": "String"
+								},
+								"sink": {
+									"name": "District",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "beat",
+									"type": "String"
+								},
+								"sink": {
+									"name": "beat",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "grid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "grid",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "crimedescr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "crimedesr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ucr_ncic_code",
+									"type": "String"
+								},
+								"sink": {
+									"name": "code",
+									"type": "Int64"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText21",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSqlDWTable3",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1000
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2019-11-19T18:35:51Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

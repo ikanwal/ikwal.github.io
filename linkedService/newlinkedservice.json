@@ -1,0 +1,11 @@
+{
+	"name": "newlinkedservice",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://karlbringerstorageaccoun.blob.core.windows.net"
+		}
+	}
+}

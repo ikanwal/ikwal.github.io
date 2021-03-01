@@ -1,0 +1,24 @@
+{
+	"name": "SqlServer2",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=True;Data Source=localhost\\MSSQLSERVER03;Initial Catalog=AdventureWorks2017",
+			"userName": "NORTHAMERICA\\kaaro",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault2",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "sqlserver"
+			}
+		},
+		"connectVia": {
+			"referenceName": "localSHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

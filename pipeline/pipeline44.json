@@ -1,0 +1,98 @@
+{
+	"name": "pipeline44",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*.json",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "CosmosDbMongoDbApiSink",
+						"writeBatchTimeout": "00:30:00",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['fruit']"
+								},
+								"sink": {
+									"path": "$['Fruit']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['size']"
+								},
+								"sink": {
+									"path": "$['Size']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['color']"
+								},
+								"sink": {
+									"path": "$['Color']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['quiz']['sport']['q1']['question']"
+								},
+								"sink": {
+									"path": "$['quiz']['maths']['q1']['question']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['quiz']['sport']['q1']['options']"
+								},
+								"sink": {
+									"path": "$['quiz']['sport']['q1']['options']"
+								}
+							}
+						],
+						"collectionReference": ""
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Json2",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CosmosDbMongoDbApiCollection1",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-03-19T22:16:16Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

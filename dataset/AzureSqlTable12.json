@@ -1,0 +1,49 @@
+{
+	"name": "AzureSqlTable12",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase10",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "cdatetime",
+				"type": "date"
+			},
+			{
+				"name": "address",
+				"type": "varchar"
+			},
+			{
+				"name": "district",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "beat",
+				"type": "varchar"
+			},
+			{
+				"name": "grid",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "crimedescr",
+				"type": "varchar"
+			},
+			{
+				"name": "code",
+				"type": "bigint",
+				"precision": 19
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "data12"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,36 @@
+{
+	"name": "pipeline4",
+	"properties": {
+		"activities": [
+			{
+				"name": "Spark1",
+				"type": "HDInsightSpark",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"rootPath": "bolbstoragemicrosub/New Directory",
+					"entryFilePath": "WordCount_sparktesting.py",
+					"getDebugInfo": "Always",
+					"sparkJobLinkedService": {
+						"referenceName": "HDlinkedserve",
+						"type": "LinkedServiceReference"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "HDlinked",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2019-10-02T20:16:35Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

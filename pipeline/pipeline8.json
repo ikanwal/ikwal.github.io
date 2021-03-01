@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Custom1",
-				"type": "Custom",
+				"name": "Spark1",
+				"type": "HDInsightSpark",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -15,23 +15,21 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"command": "dgefhnj",
-					"resourceLinkedService": {
-						"referenceName": "AzureBlobStorage1",
+					"rootPath": "wasbs://bolbstoragemicrosub@storagenicrosub.blob.core.windows.net",
+					"entryFilePath": "New Directory/WordCount_sparktesting.py",
+					"sparkJobLinkedService": {
+						"referenceName": "linkedService1",
 						"type": "LinkedServiceReference"
-					},
-					"folderPath": "blobtoblob/New folder",
-					"referenceObjects": {
-						"linkedServices": [],
-						"datasets": []
 					}
 				},
 				"linkedServiceName": {
-					"referenceName": "AzureBatch1",
+					"referenceName": "HDlinked",
 					"type": "LinkedServiceReference"
 				}
 			}
 		],
-		"annotations": []
-	}
+		"annotations": [],
+		"lastPublishTime": "2019-10-04T16:44:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
 }

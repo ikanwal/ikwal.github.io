@@ -1,0 +1,100 @@
+{
+	"name": "AzureSqlTable9",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase8",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Segment",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Country",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Product",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Discount Band",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Units Sold",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Manufacturing Price",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "Sale Price",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "Gross Sales",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "Discounts",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": " Sales",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "COGS",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "Profit",
+				"type": "money",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "Month Number",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "Month Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Year",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "rogers"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

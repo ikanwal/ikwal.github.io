@@ -2,7 +2,7 @@
 	"name": "DelimitedText6",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "testblob",
+			"referenceName": "AzureBlobStorage1",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
@@ -10,13 +10,21 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"container": "helo"
+				"fileName": "second colimn.csv",
+				"folderPath": "New Directory",
+				"container": "bolbstoragemicrosub"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
+			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "Cuenta_Valores",
+				"type": "String"
+			}
+		]
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }

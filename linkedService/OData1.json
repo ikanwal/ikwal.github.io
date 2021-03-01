@@ -1,0 +1,12 @@
+{
+	"name": "OData1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "OData",
+		"typeProperties": {
+			"url": "https://services.odata.org/V3/(S(rx45t5o4wf41t5131zqscfws))/OData/OData.svc",
+			"authenticationType": "Anonymous"
+		}
+	}
+}

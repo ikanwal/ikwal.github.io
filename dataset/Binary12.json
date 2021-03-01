@@ -1,0 +1,23 @@
+{
+	"name": "Binary12",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Storagemicrsub",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"filename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "bolbstoragemicrosub"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

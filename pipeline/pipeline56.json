@@ -1,0 +1,41 @@
+{
+	"name": "pipeline56",
+	"properties": {
+		"activities": [
+			{
+				"name": "dataflow13",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow13",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "dataflowadlsgen2",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "newvontainer"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2020-04-16T03:45:50Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

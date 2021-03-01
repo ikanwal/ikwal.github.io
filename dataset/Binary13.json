@@ -1,0 +1,20 @@
+{
+	"name": "Binary13",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage34",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "emp.txt",
+				"folderPath": "datacopied",
+				"container": "bolbstoragemicrosub"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
