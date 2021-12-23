@@ -1,0 +1,16 @@
+{
+	"name": "Teradata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Teradata_ls",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Teradata"
+		},
+		"annotations": [],
+		"type": "TeradataTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,265 @@
+{
+	"name": "LocationDetectionLoad",
+	"properties": {
+		"description": "Location Detection Data from Data lake",
+		"activities": [
+			{
+				"name": "Location Detection Feed",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Move LocationDetection Current File to Stage",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false,
+							"prefix": "LOCATION_DETECTION_CHANGE_EFF_HC_V"
+						}
+					},
+					"sink": {
+						"type": "CommonDataServiceForAppsSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "myc_locationdetectionskey"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ASSOCIATE_LOCATION_CLASSIFICATION_CD",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_locationclassificationcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ASSOCIATE_LOCATION_CLASSIFICATION_DESC",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_locationclassificationdescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANGE_TYPE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_changetype",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CORP_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_corpid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DETECTION_PERIOD_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_detectionperiodid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DETECTION_RUN_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_detectionrunid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PERSON_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_personid",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PREV_ASSOCIATE_LOCATION_CLASSIFICATION_CD",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_previouslocationclassificationcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PREV_ASSOCIATE_LOCATION_CLASSIFICATION_DESC",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_previouslocationclassificationdescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PREV_DETECTION_PERIOD_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_previousdetectionperiodid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PREV_PERIOD_DETECTION_RUN_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_previousdetectionrunid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PREV_RECOMMEND_ACTION",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_previousrecommendaction",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RECOMMEND_ACTION",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "myc_recommendaction",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LocationDetectionFeedExcel",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "LocationDetection",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Move LocationDetection Current File to Stage",
+				"description": "Move LocationDetection Current File from datalake-in to datalake-stage container for processing",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MoveFilesBetweenContainers",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"SourceStore_Location": "datalake-in",
+						"SourceStore_File": "LOCATION_DETECTION_CHANGE_EFF_HC_V",
+						"DestinationStore_Location": "datalake-stage",
+						"DeleteFileAtSource": true
+					}
+				}
+			},
+			{
+				"name": "Archive LocationDetection Current File",
+				"description": "Move LocationDetection Current File from datalake-stage to datalake-archive container after Successful processing",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Location Detection Feed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MoveFilesBetweenContainers",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"SourceStore_Location": "datalake-stage",
+						"SourceStore_File": "LOCATION_DETECTION_CHANGE_EFF_HC_V",
+						"DestinationStore_Location": "datalake-archive",
+						"DeleteFileAtSource": true
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "Certifications"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-02T20:27:37Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,50 @@
+{
+	"name": "DSetAppInsightsSQLDB",
+	"properties": {
+		"description": "Used to Load App Insights to SQL",
+		"linkedServiceName": {
+			"referenceName": "LNKSqlDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "LSSOAppInsightsAppId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "UserEmail",
+				"type": "nvarchar"
+			},
+			{
+				"name": "FeedbackValue",
+				"type": "nvarchar"
+			},
+			{
+				"name": "MS_AppId",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AppName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CREATED_TS",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "VersionId",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "LSSOAppInsightsNew"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

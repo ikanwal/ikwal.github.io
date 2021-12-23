@@ -1,0 +1,20 @@
+{
+	"name": "LS_SFTP_OnPrem",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "dev-r11edge.c21.hadoop.td.com",
+			"port": 22,
+			"authenticationType": "SshPublicKey",
+			"userName": "tedpp2rahonab",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJhYTk1Mzk3NC1hYmQzLTRiOTItYmMzNS1kOWI3NjAxYWQxNTAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ==",
+			"skipHostKeyValidation": true
+		},
+		"connectVia": {
+			"referenceName": "aaedl-shir-datamvt",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

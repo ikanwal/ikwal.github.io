@@ -1,0 +1,55 @@
+{
+	"name": "PL_GZFEDPTELPD1STO001_PD_TELEMATICS_MODELED_TO_GZFEDPTELPD1STO001_BACKUP",
+	"properties": {
+		"activities": [
+			{
+				"name": "Backup Data from EDP COR",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_GZFEDPTELPD1STO001_PD_TELEMATICS_MODELED",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_GZFBKPTELPD1STO001",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-05-11T21:14:13Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

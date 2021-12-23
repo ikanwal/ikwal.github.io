@@ -1,0 +1,11 @@
+{
+	"name": "LS_ConnStr_SQLServerAuthentication_ASMI_AKV",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://lbb4t0117adfl000lab.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}

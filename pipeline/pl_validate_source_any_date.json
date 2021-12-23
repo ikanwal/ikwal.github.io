@@ -1,0 +1,52 @@
+{
+	"name": "pl_validate_source_any_date",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_valid_data_source_availability_non_partitioned",
+				"type": "Validation",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_adls_parquet_non_partitioned",
+						"type": "DatasetReference",
+						"parameters": {
+							"filesystem": {
+								"value": "@pipeline().parameters.filesystem",
+								"type": "Expression"
+							},
+							"project": {
+								"value": "@pipeline().parameters.project",
+								"type": "Expression"
+							},
+							"table_name": {
+								"value": "@pipeline().parameters.table_name",
+								"type": "Expression"
+							}
+						}
+					},
+					"timeout": "3.00:00:00",
+					"sleep": 10
+				}
+			}
+		],
+		"parameters": {
+			"filesystem": {
+				"type": "string"
+			},
+			"project": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/GENERIC_PIPELINES/EXECUTE_DATABRICKS_JOB/LAYER_1"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:24Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

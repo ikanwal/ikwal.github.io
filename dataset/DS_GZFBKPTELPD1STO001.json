@@ -1,0 +1,22 @@
+{
+	"name": "DS_GZFBKPTELPD1STO001",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_gzfbkptelpd1sto001",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "gzfedpcorpd1sto001",
+				"container": {
+					"value": "@formatDateTime(utcnow(),'yyyy-MM-dd')",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

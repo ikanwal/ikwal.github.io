@@ -1,0 +1,24 @@
+{
+	"name": "LS_SHIR_SourcePath",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "c:\\data",
+			"userId": "CTHAZURE-SHIR-SVC",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_SHIR_PW_ServiceAccount",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SHIR-PW-ServiceAccount"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SHIR-datafactory1",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

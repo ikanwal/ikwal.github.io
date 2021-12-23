@@ -1,0 +1,48 @@
+{
+	"name": "DS_PWR_SQL_WinAuth_DYNAMIC",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_PWR_SQL_WinAuth_DYNAMIC",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"p_servername": {
+					"value": "@dataset().p_ds_servername",
+					"type": "Expression"
+				},
+				"p_dbname": {
+					"value": "@dataset().p_ds_dbname",
+					"type": "Expression"
+				},
+				"p_username": {
+					"value": "@dataset().p_ds_username",
+					"type": "Expression"
+				},
+				"p_secretname": {
+					"value": "@dataset().p_ds_secretname",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"p_ds_servername": {
+				"type": "String"
+			},
+			"p_ds_dbname": {
+				"type": "String"
+			},
+			"p_ds_username": {
+				"type": "String"
+			},
+			"p_ds_secretname": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Power"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

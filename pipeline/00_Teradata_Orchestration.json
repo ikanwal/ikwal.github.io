@@ -1,0 +1,11 @@
+{
+	"name": "00_Teradata_Orchestration",
+	"properties": {
+		"folder": {
+			"name": "Teradata"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-12T20:09:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

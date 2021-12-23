@@ -1,0 +1,30 @@
+{
+	"name": "DS_ADLS_RetrievalBinaryParameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_edppArchive",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FilePath": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "DataMovement"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().FilePath",
+					"type": "Expression"
+				},
+				"fileSystem": "edpparchive"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

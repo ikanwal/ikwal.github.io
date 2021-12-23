@@ -1,0 +1,32 @@
+{
+	"name": "ls_sqldb",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_azkv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "appsqldb-connection-string"
+			},
+			"servicePrincipalId": "69b9c84b-dbee-41a5-841d-d8e7e512627b",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_azkv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "svc-devops-secret"
+			},
+			"tenant": "fb6ea403-7cf1-4905-810a-fe5547e98204"
+		},
+		"connectVia": {
+			"referenceName": "SHIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

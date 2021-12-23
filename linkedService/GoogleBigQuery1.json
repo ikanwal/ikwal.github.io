@@ -1,0 +1,23 @@
+{
+	"name": "GoogleBigQuery1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "GoogleBigQuery",
+		"typeProperties": {
+			"connectionProperties": {
+				"project": "wmt-fin-fcp-prod-ds",
+				"requestGoogleDriveScope": true,
+				"authenticationType": "ServiceAuthentication",
+				"email": "svc-fcpstr-prd-irprtl-r@wmt-fin-fcp-prod-ds.iam.gserviceaccount.com",
+				"keyFilePath": "C:\\gcp_json\\svc-fcpstr-prd-irprtl-r.json",
+				"trustedCertPath": "iraj@v-ik",
+				"Timeout": 0
+			}
+		},
+		"connectVia": {
+			"referenceName": "newIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

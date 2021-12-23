@@ -1,0 +1,35 @@
+{
+	"name": "LS_SQLMIConn",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlMI",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=cth0117labc1mi.6190c4fc4fff.database.windows.net;Initial Catalog=cthlabdb;User ID=cthuatapp",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_ConnStr_SQLServerAuthentication_ASMI_AKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SQL-PW-SQLServerAuthentication-KVS"
+			},
+			"alwaysEncryptedSettings": {
+				"alwaysEncryptedAkvAuthType": "ServicePrincipal",
+				"servicePrincipalId": "27f3cde2-f3ca-4edd-bbeb-bdf06cd5145a",
+				"servicePrincipalKey": {
+					"type": "AzureKeyVaultSecret",
+					"store": {
+						"referenceName": "LS_ConnStr_SQLServerAuthentication_ASMI_AKV",
+						"type": "LinkedServiceReference"
+					},
+					"secretName": "SHIRServicePrincipleKey"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "SHIR-datafactory1",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

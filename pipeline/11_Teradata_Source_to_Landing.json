@@ -1,0 +1,957 @@
+{
+	"name": "11_Teradata_Source_to_Landing",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Watermark",
+				"description": "",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Pipelines/Teradata/Watermark Updates",
+					"baseParameters": {
+						"sourceschema": {
+							"value": "@pipeline().parameters.sourceschema",
+							"type": "Expression"
+						},
+						"sourcetable": {
+							"value": "@pipeline().parameters.sourcetable",
+							"type": "Expression"
+						},
+						"method": "get"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Databricks_DIMTank_Pool",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"ADFActivityName": "Get Watermark",
+						"ADFPipelineName": "@pipeline().Pipeline",
+						"TableName": {
+							"value": "@{pipeline().parameters.sourceschema}.@{pipeline().parameters.sourcetable}",
+							"type": "Expression"
+						},
+						"OrchestrationPipeline": {
+							"value": "@pipeline().parameters.OrchestrationPipeline",
+							"type": "Expression"
+						},
+						"ADFPipelineRunId": "@pipeline().RunId",
+						"ADFTriggerId": "@pipeline().TriggerId"
+					}
+				}
+			},
+			{
+				"name": "Get Minimum Date",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "Set MaxDays",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@if(equals(activity('Get Watermark').output.runOutput, '1900-01-01 00:00:00'), if(empty(pipeline().parameters.partitioncolumns), 'new - partitionless', 'new - partitioned'), 'existing')",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "new - partitioned",
+							"activities": [
+								{
+									"name": "Get Min Partitioned Table Record",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.01:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "TeradataSource",
+											"query": {
+												"value": "SELECT MIN(@{if(equals(pipeline().parameters.sourcetable, 'PARTY_DEMOGRAPHICS_VW'), 'SNAPSHOT_DATE', 'LOAD_TS')}) As Initial_Watermark FROM @{pipeline().parameters.sourceschema}.@{pipeline().parameters.sourcetable} WHERE ?AdfHashPartitionCondition",
+												"type": "Expression"
+											},
+											"partitionOption": "Hash",
+											"partitionSettings": {
+												"partitionColumnName": {
+													"value": "@{pipeline().parameters.partitioncolumns}",
+													"type": "Expression"
+												}
+											}
+										},
+										"dataset": {
+											"referenceName": "Teradata",
+											"type": "DatasetReference"
+										}
+									}
+								},
+								{
+									"name": "Set QueryWindowMin - New Partitioned",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Get Min Partitioned Table Record",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "QueryWindowMin",
+										"value": {
+											"value": "@formatDateTime(activity('Get Min Partitioned Table Record').output.firstRow.Initial_Watermark, if(equals(pipeline().parameters.sourcetable, 'PARTY_DEMOGRAPHICS_VW'), 'yyyy-MM-dd', 'yyyy-MM-dd HH:mm:ss.ffffff'))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "new - partitionless",
+							"activities": [
+								{
+									"name": "Get Min Partitionless Table Record",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.01:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "TeradataSource",
+											"query": {
+												"value": "SELECT MIN(LEAST(COALESCE(@{join(split(pipeline().parameters.cd_cols, ','), concat(variables('lookup timestamp'), ', ', variables('lookup coalesce')))} @{variables('lookup timestamp')})) As Initial_Watermark FROM @{pipeline().parameters.sourceschema}.@{pipeline().parameters.sourcetable}",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "Teradata",
+											"type": "DatasetReference"
+										}
+									}
+								},
+								{
+									"name": "Set QueryWindowMin - New Partionless",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Get Min Partitionless Table Record",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "QueryWindowMin",
+										"value": {
+											"value": "@formatDateTime(activity('Get Min Partitionless Table Record').output.firstRow.Initial_Watermark, 'yyyy-MM-dd')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Set QueryWindowMin - Existing",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QueryWindowMin",
+								"value": {
+									"value": "@formatDateTime(activity('Get Watermark').output.runOutput, if(equals(pipeline().parameters.sourcetable, 'PARTY_DEMOGRAPHICS_VW'), 'yyyy-MM-dd', 'yyyy-MM-dd HH:mm:ss.ffffff'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set MaxDays",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get Watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "MaxDays",
+					"value": {
+						"value": "@IF(not(equals(pipeline().globalParameters.Environment, 'PROD')), '365', pipeline().parameters.MaxDays)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Loop Until Data is Current",
+				"description": "",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Get Minimum Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@if(equals(pipeline().parameters.cd_cols, 'SNAPSHOT_DATE'), \n\tor(\n\t\tgreaterOrEquals(\n\t\t\tformatDateTime(variables('QueryWindowMax'), 's'),\n\t\t\tformatDateTime(addDays(utcNow(), -1), 's')\n\t\t),\n\t\tor(\n\t\t\tgreaterOrEquals(length(variables('FailArray')), 10),\n\t\t\tequals(length(variables('MaxDays')), 0)\n\t\t)\n\t),\n\tor(\n\t\tgreaterOrEquals(\n\t\t\tformatDateTime(variables('QueryWindowMax'), 's'),\n\t\t\tformatDateTime(addDays(utcNow(), -1), 's')),\n\t\tor(\n\t\t\tgreaterOrEquals(length(variables('FailArray')), 10),\n\t\t\tequals(length(variables('MaxDays')), 0)\n\t\t)\n\t)\n)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Update QueryWindowMin",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Update Watermark Folder",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QueryWindowMin",
+								"value": {
+									"value": "@variables('QueryWindowMax')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Print FailCount",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set QueryStart",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FailCount",
+								"value": {
+									"value": "@{length(variables('FailArray'))}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Partitionless Table",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Set QueryWindowMax",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@empty(pipeline().parameters.partitioncolumns)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Set HalfMax - Partitioned",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Increment FailArray - Partitioned",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "HalfMax",
+											"value": {
+												"value": "@{div(int(variables('MaxDays')), 2)}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Increment FailArray - Partitioned",
+										"type": "AppendVariable",
+										"dependsOn": [
+											{
+												"activity": "Copy Table - Partitioned",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "FailArray",
+											"value": {
+												"value": "@variables('QueryWindowMax')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set FailCount - Partitioned",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Copy Table - Partitioned",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "FailCount",
+											"value": {
+												"value": "@{length(variables('FailArray'))}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Copy Table - Partitioned",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "1.0:00:00",
+											"retry": 1,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "TeradataSource",
+												"query": {
+													"value": "SELECT @{pipeline().parameters.selectcolumn}\nFROM @{pipeline().parameters.sourceschema}.@{pipeline().parameters.sourcetable}\nWHERE \n(\n @{join(split(pipeline().parameters.cd_cols, ','), concat(' >= ''', variables('QueryWindowMin'), ''' OR  '))}   >= '@{variables('QueryWindowMin')}'\n)\nAND\n(\n @{join(split(pipeline().parameters.cd_cols, ','), concat(' < ''', variables('QueryWindowMax'), ''' OR   '))}   < '@{variables('QueryWindowMax')}'\n)",
+													"type": "Expression"
+												},
+												"partitionOption": "Hash",
+												"partitionSettings": {
+													"partitionColumnName": {
+														"value": "@{pipeline().parameters.partitioncolumns}",
+														"type": "Expression"
+													}
+												}
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings",
+													"maxConcurrentConnections": 2000,
+													"copyBehavior": "PreserveHierarchy"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "Teradata",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ADLS_Landing_Teradata_Generic",
+												"type": "DatasetReference",
+												"parameters": {
+													"sourceschema": {
+														"value": "@pipeline().parameters.sourceschema",
+														"type": "Expression"
+													},
+													"sourcetable": {
+														"value": "@pipeline().parameters.sourcetable",
+														"type": "Expression"
+													},
+													"folderdate": {
+														"value": "@formatDateTime(variables('QueryStart'), 'yyyyMMdd')",
+														"type": "Expression"
+													},
+													"foldertime": {
+														"value": "@formatDateTime(variables('QueryStart'), 'HHmmss.ffffff')",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Update MaxDays - Partitioned",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set HalfMax - Partitioned",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "MaxDays",
+											"value": {
+												"value": "@variables('HalfMax')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Delete Incomplete Data - Partitioned",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Copy Table - Partitioned",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.01:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "ADLS_Landing_Teradata_Generic",
+												"type": "DatasetReference",
+												"parameters": {
+													"sourceschema": {
+														"value": "@pipeline().parameters.sourceschema",
+														"type": "Expression"
+													},
+													"sourcetable": {
+														"value": "@pipeline().parameters.sourcetable",
+														"type": "Expression"
+													},
+													"folderdate": {
+														"value": "@formatDateTime(variables('QueryStart'), 'yyyyMMdd')",
+														"type": "Expression"
+													},
+													"foldertime": {
+														"value": "@formatDateTime(variables('QueryStart'), 'HHmmss.ffffff')",
+														"type": "Expression"
+													}
+												}
+											},
+											"enableLogging": false,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Copy Table - Partitionless",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "1.0:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "TeradataSource",
+												"query": {
+													"value": "SELECT @{pipeline().parameters.selectcolumn}\nFROM @{pipeline().parameters.sourceschema}.@{pipeline().parameters.sourcetable}\nWHERE \n(\n @{join(split(pipeline().parameters.cd_cols, ','), concat(' >= ''', variables('QueryWindowMin'), ''' OR  '))}   >= '@{variables('QueryWindowMin')}'\n)\nAND\n(\n @{join(split(pipeline().parameters.cd_cols, ','), concat(' < ''', variables('QueryWindowMax'), ''' OR   '))}   < '@{variables('QueryWindowMax')}'\n)",
+													"type": "Expression"
+												},
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings",
+													"maxConcurrentConnections": 2000,
+													"copyBehavior": "PreserveHierarchy"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "Teradata",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ADLS_Landing_Teradata_Generic",
+												"type": "DatasetReference",
+												"parameters": {
+													"sourceschema": {
+														"value": "@pipeline().parameters.sourceschema",
+														"type": "Expression"
+													},
+													"sourcetable": {
+														"value": "@pipeline().parameters.sourcetable",
+														"type": "Expression"
+													},
+													"folderdate": {
+														"value": "@formatDateTime(variables('QueryStart'), 'yyyyMMdd')",
+														"type": "Expression"
+													},
+													"foldertime": {
+														"value": "@formatDateTime(variables('QueryStart'), 'HHmmss.ffffff')",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Increment FailCount - Partitionless",
+										"type": "AppendVariable",
+										"dependsOn": [
+											{
+												"activity": "Copy Table - Partitionless",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "FailArray",
+											"value": {
+												"value": "@variables('QueryWindowMax')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set FailCount - Partitionless",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Copy Table - Partitionless",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "FailCount",
+											"value": {
+												"value": "@{length(variables('FailArray'))}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set HalfMax - Partitionless",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Increment FailCount - Partitionless",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "HalfMax",
+											"value": {
+												"value": "@{div(int(variables('MaxDays')), 2)}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Update MaxDays - Partitionless",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set HalfMax - Partitionless",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "MaxDays",
+											"value": {
+												"value": "@variables('HalfMax')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Delete Incomplete Data - Partitionless",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Copy Table - Partitionless",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.01:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "ADLS_Landing_Teradata_Generic",
+												"type": "DatasetReference",
+												"parameters": {
+													"sourceschema": {
+														"value": "@pipeline().parameters.sourceschema",
+														"type": "Expression"
+													},
+													"sourcetable": {
+														"value": "@pipeline().parameters.sourcetable",
+														"type": "Expression"
+													},
+													"folderdate": {
+														"value": "@formatDateTime(variables('QueryStart'), 'yyyyMMdd')",
+														"type": "Expression"
+													},
+													"foldertime": {
+														"value": "@formatDateTime(variables('QueryStart'), 'HHmmss.ffffff')",
+														"type": "Expression"
+													}
+												}
+											},
+											"enableLogging": false,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Clear FailArray",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Update QueryWindowMin",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FailArray",
+								"value": {
+									"value": "@array(null)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set FailCount",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Increment FailCount - Databricks",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FailCount",
+								"value": {
+									"value": "@{length(variables('FailArray'))}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Increment FailCount - Databricks",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "Update Watermark Folder",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FailArray",
+								"value": {
+									"value": "@variables('QueryWindowMax')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Update Watermark Folder",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "Partitionless Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Pipelines/Teradata/Watermark Updates",
+								"baseParameters": {
+									"sourceschema": {
+										"value": "@pipeline().parameters.sourceschema",
+										"type": "Expression"
+									},
+									"sourcetable": {
+										"value": "@pipeline().parameters.sourcetable",
+										"type": "Expression"
+									},
+									"method": "update",
+									"pipelinestarttime": {
+										"value": "@formatDateTime(variables('QueryStart'), 'yyyyMMdd/HHmmss.ffffff')",
+										"type": "Expression"
+									},
+									"cd_cols": {
+										"value": "@pipeline().parameters.cd_cols",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Databricks_DIMTank_Pool",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"ADFActivityName": "Update Watermark",
+									"ADFPipelineName": "@pipeline().Pipeline",
+									"TableName": {
+										"value": "@{pipeline().parameters.sourceschema}.@{pipeline().parameters.sourcetable}",
+										"type": "Expression"
+									},
+									"OrchestrationPipeline": {
+										"value": "@pipeline().parameters.OrchestrationPipeline",
+										"type": "Expression"
+									},
+									"ADFPipelineRunId": "@pipeline().RunId",
+									"ADFTriggerId": "@pipeline().TriggerId"
+								}
+							}
+						},
+						{
+							"name": "Set QueryStart",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QueryStart",
+								"value": {
+									"value": "@formatDateTime(convertFromUtc(utcnow(), 'Eastern Standard Time'), 'yyyy-MM-dd HH:mm:ss.ffffff')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set QueryWindowMax",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Print FailCount",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "QueryWindowMax",
+								"value": {
+									"value": "@formatDateTime(\nIF(\ngreaterOrEquals(addMinutes(variables('QueryStart'), -30), addDays(variables('QueryWindowMin'), INT(variables('MaxDays')))), \naddDays(variables('QueryWindowMin'), INT(variables('MaxDays'))), \naddMinutes(variables('QueryStart'), -30))\n, if(equals(pipeline().parameters.cd_cols, 'SNAPSHOT_DATE'), 'yyyy-MM-dd', \n'yyyy-MM-dd HH:mm:ss.ffffff'))",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "1.00:00:00"
+				}
+			},
+			{
+				"name": "Too Many Failures",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Loop Until Data is Current",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('MaxDays'), '0')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Empty Pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Empty Pipeline",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"sourceschema": {
+				"type": "string",
+				"defaultValue": "dIDWUserVW"
+			},
+			"sourcetable": {
+				"type": "string",
+				"defaultValue": "PARTY_DEMOGRAPHICS_VW"
+			},
+			"cd_cols": {
+				"type": "string",
+				"defaultValue": "SNAPSHOT_DATE"
+			},
+			"selectcolumn": {
+				"type": "string",
+				"defaultValue": "SNAPSHOT_DATE, PARTY_IDENTIFIER, ACCESS_NUMBER, Prefix, FIRST_NAME, MIDDLE_NAME, MIDDLE_INITIAL, LAST_NAME, SUFFIX, FULL_NAME, COMPANY_NAME, DATE_OF_BIRTH, AGE, AGE_RANGE, RESIDENCE_ADDRESS_LINE1, RESIDENCE_ADDRESS_LINE2, RESIDENCE_ADDRESS_LINE3, RESIDENCE_CITY, RESIDENCE_STATE_CODE, RESIDENCE_ZIP_CODE_9, RESIDENCE_ZIP_CODE_5, RESIDENCE_COUNTRY_NAME, APO_FPO_FOREIGN_ADDRESS_CODE, MEMBERSHIP_INDICATOR, PARTY_TYPE, BUSINESS_MEMBERSHIP_INDICATOR, STATUS_CODE, ORIGINAL_DATE_OF_MEMBERSHIP, AGE_AT_MEMBERSHIP, SOURCE_OF_MEMBERSHIP, ORIGIN_CODE, ORIGIN_CODE_DESCRIPTION, GENDER, GENDER_SOURCE, EMPLOYMENT_STATUS, EMPLOYMENT_STATUS_AT_MEMBERSHP, EMPLOYEE_OFFICIAL_CODE, MILITARY_RANK, MILITARY_RANK_AT_MEMBERSHIP, MILITARY_RANK_UPDATE_DATE, MILITARY_RANK_UPDATE_SOURCE, PAY_GRADE_CD, PAY_GRADE_AT_MEMBERSHIP, PAY_GRADE_UPDATE_DATE, PAY_GRADE_UPDATE_SOURCE, LENGTH_OF_MEMBERSHIP, LENGTH_OF_MEMBERSHIP_RANGE, YEAR_24_MEMBER_INDICATOR, UNDER_AGE_18_INDICATOR, END_OF_ACTIVE_SERVICE_DATE, ORIGIN_GROUP_CODE, ORIGIN_GROUP_CODE_DESCRIPTION, LAST_CONTACT_DATE, OCCUPATION_TYPE_CODE, OCCUPATION_TYPE_NAME, MILITARY_PAY_GRADE_GROUP_CODE, MILITARY_PAY_GRADE_GROUP_NAME, RESIDENCE_COUNTY_CODE, RESIDENCE_COUNTY_NAME, RESIDENCE_LATITUDE, RESIDENCE_LONGITUDE, RESIDENCE_CBSA_CODE, RESIDENCE_CBSA_NAME, DATE_OF_DEATH, RESIDENCE_CBSA_COUNTY_EFF_DT, HOME_PHONE_NUMBER, MOBILE_PHONE_NUMBER, BUSINESS_PHONE_NUMBER"
+			},
+			"partitioncolumns": {
+				"type": "string",
+				"defaultValue": "SNAPSHOT_DATE"
+			},
+			"MaxDays": {
+				"type": "string",
+				"defaultValue": "365"
+			},
+			"OrchestrationPipeline": {
+				"type": "string",
+				"defaultValue": "00_Teradata_Orchestration_Staging_and_Application"
+			}
+		},
+		"variables": {
+			"QueryWindowMin": {
+				"type": "String"
+			},
+			"QueryWindowMax": {
+				"type": "String"
+			},
+			"lookup coalesce": {
+				"type": "String",
+				"defaultValue": "Coalesce("
+			},
+			"lookup timestamp": {
+				"type": "String",
+				"defaultValue": ", Cast('2100-01-01 00:00:00.00' AS TIMESTAMP))"
+			},
+			"QueryStart": {
+				"type": "String"
+			},
+			"as_timestamp": {
+				"type": "String",
+				"defaultValue": " AS TIMESTAMP)"
+			},
+			"FailCount": {
+				"type": "String"
+			},
+			"FailArray": {
+				"type": "Array"
+			},
+			"HalfMax": {
+				"type": "String"
+			},
+			"MaxDays": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Teradata"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-07T18:42:24Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

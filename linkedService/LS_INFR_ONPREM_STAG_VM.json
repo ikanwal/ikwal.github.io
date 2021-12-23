@@ -1,0 +1,21 @@
+{
+	"name": "LS_INFR_ONPREM_STAG_VM",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "crl6cldapz3050.dynamic.vmware-prod-soc.cloud.td.com",
+			"port": 22,
+			"authenticationType": "Basic",
+			"userName": "PL6CLD002AZEDPC",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJiMTVhNTk2Zi04NzUyLTRkYmYtODI3OS03MzFmOTUxNzY2OWQiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ==",
+			"skipHostKeyValidation": true
+		},
+		"connectVia": {
+			"referenceName": "ir-eim-connect-vm",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "Connection to on premise staging vm for inference path",
+		"annotations": []
+	}
+}

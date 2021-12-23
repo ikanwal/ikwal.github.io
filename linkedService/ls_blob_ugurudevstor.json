@@ -1,0 +1,23 @@
+{
+	"name": "ls_blob_ugurudevstor",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"sasUri": "https://storagevaluelensdev.blob.core.windows.net/",
+			"sasToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_mmv_dev",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "valuelensdev"
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

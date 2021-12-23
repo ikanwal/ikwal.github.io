@@ -1,0 +1,41 @@
+{
+	"name": "ADLS_Landing_Teradata_Generic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "adls01_readwrite_ls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sourceschema": {
+				"type": "string"
+			},
+			"sourcetable": {
+				"type": "string"
+			},
+			"folderdate": {
+				"type": "string"
+			},
+			"foldertime": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Teradata"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat('Landing/Teradata/',dataset().sourceschema,'.',dataset().sourcetable,'/',dataset().folderdate,'/',dataset().foldertime)",
+					"type": "Expression"
+				},
+				"fileSystem": "dim"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,107 @@
+{
+	"name": "LSSOAppInsightsSP_IrajTesting",
+	"properties": {
+		"activities": [
+			{
+				"name": "LSSOAppInsightsBlobCopy2Table",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"sqlWriterStoredProcedureName": "[dbo].[LSSOAppInsightsInsert]",
+						"sqlWriterTableType": "LSSOAppInsightsType",
+						"storedProcedureTableTypeParameterName": "InputTable",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['Properties']['ms-appId']"
+								},
+								"sink": {
+									"name": "MS_AppId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Properties']['AppName']"
+								},
+								"sink": {
+									"name": "AppName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Properties']['FeedbackValue']"
+								},
+								"sink": {
+									"name": "FeedbackValue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Properties']['UserEmail']"
+								},
+								"sink": {
+									"name": "UserEmail",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Properties']['VersionId']"
+								},
+								"sink": {
+									"name": "VersionId",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": ""
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LSSOAppInsightsBlob",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DSetAppInsightsSQLDB",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-07-18T16:30:25Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

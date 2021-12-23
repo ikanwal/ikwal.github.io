@@ -1,0 +1,19 @@
+{
+	"name": "DestinationDataset_8if",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sngQa",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "destination_sets"
+		},
+		"annotations": [],
+		"type": "CosmosDbMongoDbApiCollection",
+		"schema": [],
+		"typeProperties": {
+			"collection": "items"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

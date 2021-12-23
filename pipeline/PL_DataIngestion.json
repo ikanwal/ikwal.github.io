@@ -1,0 +1,137 @@
+{
+	"name": "PL_DataIngestion",
+	"properties": {
+		"activities": [
+			{
+				"name": "lkp_getsrcmetadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlMISource",
+						"sqlReaderQuery": "select sourcefile,sourcepath,columndelimiter,rowdelimiter,targetschema,targettable,batch_id from source_metadata where isactive=1;",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsSQLMI_generic",
+						"type": "DatasetReference",
+						"parameters": {
+							"StagingTable": "notset",
+							"StagingSchema": "cth_stz"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "FE_CopySrcActivity",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lkp_getsrcmetadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lkp_getsrcmetadata').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy sourcefileto_staging",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlMISink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "dsFFSource",
+									"type": "DatasetReference",
+									"parameters": {
+										"sourcepath": {
+											"value": "@item().sourcepath",
+											"type": "Expression"
+										},
+										"delimiter": {
+											"value": "@item().columndelimiter",
+											"type": "Expression"
+										},
+										"sourcefile": {
+											"value": "@item().sourcefile",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "dsSQLMI_generic",
+									"type": "DatasetReference",
+									"parameters": {
+										"StagingTable": {
+											"value": "@item().targettable",
+											"type": "Expression"
+										},
+										"StagingSchema": {
+											"value": "@item().targetschema",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "FL_DataIngestion"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-22T19:23:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

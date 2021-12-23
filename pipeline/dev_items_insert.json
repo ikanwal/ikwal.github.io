@@ -1,0 +1,273 @@
+{
+	"name": "dev_items_insert",
+	"properties": {
+		"activities": [
+			{
+				"name": "copy items to dev",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "qastoresitems//store_9879.csv"
+					},
+					{
+						"name": "Destination",
+						"value": "items"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"maxConcurrentConnections": 1,
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings",
+							"skipLineCount": 0
+						}
+					},
+					"sink": {
+						"type": "CosmosDbMongoDbApiSink",
+						"writeBatchTimeout": "00:30:00",
+						"writeBehavior": "upsert"
+					},
+					"enableStaging": false,
+					"parallelCopies": 1,
+					"enableSkipIncompatibleRow": true,
+					"dataIntegrationUnits": 2,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "item_id",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['item_id']"
+								}
+							},
+							{
+								"source": {
+									"name": "sku",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['sku']"
+								}
+							},
+							{
+								"source": {
+									"name": "pos_description",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['pos_description']"
+								}
+							},
+							{
+								"source": {
+									"name": "ext_description",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['ext_description']"
+								}
+							},
+							{
+								"source": {
+									"name": "sell_multiple",
+									"type": "Int16"
+								},
+								"sink": {
+									"path": "$['sell_multiple']"
+								}
+							},
+							{
+								"source": {
+									"name": "sell_price",
+									"type": "Double"
+								},
+								"sink": {
+									"path": "$['sell_price']"
+								}
+							},
+							{
+								"source": {
+									"name": "crv",
+									"type": "Double"
+								},
+								"sink": {
+									"path": "$['crv']"
+								}
+							},
+							{
+								"source": {
+									"name": "link_code",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['link_code']"
+								}
+							},
+							{
+								"source": {
+									"name": "food_stamp",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['food_stamp']"
+								}
+							},
+							{
+								"source": {
+									"name": "restricted_item",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['restricted_item']"
+								}
+							},
+							{
+								"source": {
+									"name": "ewic",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['ewic']"
+								}
+							},
+							{
+								"source": {
+									"name": "weight_item",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['weight_item']"
+								}
+							},
+							{
+								"source": {
+									"name": "dept",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['dept']"
+								}
+							},
+							{
+								"source": {
+									"name": "tax_item",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['tax_item']"
+								}
+							},
+							{
+								"source": {
+									"name": "club_item",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['club_item']"
+								}
+							},
+							{
+								"source": {
+									"name": "smic",
+									"type": "Int16"
+								},
+								"sink": {
+									"path": "$['smic']"
+								}
+							},
+							{
+								"source": {
+									"name": "bpn_no",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['bpn_no']"
+								}
+							},
+							{
+								"source": {
+									"name": "itemid_storeid",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['_id']"
+								}
+							},
+							{
+								"source": {
+									"name": "store_id",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['store_id']"
+								}
+							},
+							{
+								"source": {
+									"name": "non_discountable",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['non_discountable']"
+								}
+							},
+							{
+								"source": {
+									"name": "points_apply",
+									"type": "Boolean"
+								},
+								"sink": {
+									"path": "$['points_apply']"
+								}
+							},
+							{
+								"source": {
+									"name": "sellby_unit",
+									"type": "String"
+								},
+								"sink": {
+									"path": "$['sellby_unit']"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_8if",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_8if",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SNG_ITEMS/dev"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-22T16:52:56Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

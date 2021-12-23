@@ -1,0 +1,11 @@
+{
+	"name": "ls_kv_mmv_dev",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-valuelensdev.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}

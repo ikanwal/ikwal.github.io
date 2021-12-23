@@ -1,0 +1,22 @@
+{
+	"name": "LS_EC_Blob_Store",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "EC_Vault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "BLOB-KEY"
+			}
+		},
+		"connectVia": {
+			"referenceName": "IR-AZURE-VM",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

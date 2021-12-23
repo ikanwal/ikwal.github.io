@@ -1,0 +1,137 @@
+{
+	"name": "LSSOAppInsightsBlob",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AppInsightsLNKBlob",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "PT1H (4).json",
+				"container": "demo"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"time": {
+					"type": "string"
+				},
+				"resourceId": {
+					"type": "string"
+				},
+				"ResourceGUID": {
+					"type": "string"
+				},
+				"Type": {
+					"type": "string"
+				},
+				"ClientBrowser": {
+					"type": "string"
+				},
+				"ClientCity": {
+					"type": "string"
+				},
+				"ClientCountryOrRegion": {
+					"type": "string"
+				},
+				"ClientIP": {
+					"type": "string"
+				},
+				"ClientModel": {
+					"type": "string"
+				},
+				"ClientOS": {
+					"type": "string"
+				},
+				"ClientStateOrProvince": {
+					"type": "string"
+				},
+				"ClientType": {
+					"type": "string"
+				},
+				"IKey": {
+					"type": "string"
+				},
+				"_BilledSize": {
+					"type": "integer"
+				},
+				"OperationName": {
+					"type": "string"
+				},
+				"OperationId": {
+					"type": "string"
+				},
+				"ParentId": {
+					"type": "string"
+				},
+				"SDKVersion": {
+					"type": "string"
+				},
+				"SessionId": {
+					"type": "string"
+				},
+				"UserAuthenticatedId": {
+					"type": "string"
+				},
+				"UserId": {
+					"type": "string"
+				},
+				"Properties": {
+					"type": "object",
+					"properties": {
+						"ms-isTest": {
+							"type": "string"
+						},
+						"ms-appId": {
+							"type": "string"
+						},
+						"ms-appName": {
+							"type": "string"
+						},
+						"ms-appSessionId": {
+							"type": "string"
+						},
+						"ms-tenantId": {
+							"type": "string"
+						},
+						"ms-environmentId": {
+							"type": "string"
+						},
+						"AppName": {
+							"type": "string"
+						},
+						"FeedbackValue": {
+							"type": "string"
+						},
+						"Screen": {
+							"type": "string"
+						},
+						"UserEmail": {
+							"type": "string"
+						},
+						"UserName": {
+							"type": "string"
+						},
+						"VersionId": {
+							"type": "string"
+						}
+					}
+				},
+				"Message": {
+					"type": "string"
+				},
+				"SeverityLevel": {
+					"type": "integer"
+				},
+				"ItemCount": {
+					"type": "integer"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

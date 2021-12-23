@@ -1,0 +1,22 @@
+{
+	"name": "RE_AtlasProd_MongoDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "MongoDbAtlas",
+		"typeProperties": {
+			"connectionString": "mongodb://XDPReadOnly:@rapidengageprod-shard-00-00-zcmhn.azure.mongodb.net,rapidengageprod-shard-00-01-zcmhn.azure.mongodb.net,rapidengageprod-shard-00-02-zcmhn.azure.mongodb.net/test?authSource=admin;tls=true;replicaSet=RapidEngageProd-shard-0",
+			"database": "@{linkedService().databaseName}"
+		},
+		"connectVia": {
+			"referenceName": "pocOnSiteIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		},
+		"parameters": {
+			"databaseName": {
+				"type": "string",
+				"defaultValue": "c2c"
+			}
+		},
+		"annotations": []
+	}
+}

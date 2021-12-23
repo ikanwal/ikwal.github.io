@@ -1,0 +1,143 @@
+{
+	"name": "cdmProcessBatchConclude",
+	"properties": {
+		"activities": [
+			{
+				"name": "ConcludeProcessBatch",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "cdm.process_batch_conclude",
+					"storedProcedureParameters": {
+						"advanced_version_record_ct": {
+							"type": "Int32"
+						},
+						"collapsed_version_record_ct": {
+							"type": "Int32"
+						},
+						"comments": {
+							"value": {
+								"value": "@pipeline().parameters.comments",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"deleted_record_ct": {
+							"value": {
+								"value": "@pipeline().parameters.deleted_record_ct",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"exception_record_ct": {
+							"type": "Int32"
+						},
+						"inserted_record_ct": {
+							"value": {
+								"value": "@pipeline().parameters.inserted_record_ct",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"process_batch_key": {
+							"value": {
+								"value": "@pipeline().parameters.process_batch_key",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"revised_record_ct": {
+							"type": "Int32"
+						},
+						"source_record_ct": {
+							"value": {
+								"value": "@pipeline().parameters.source_record_ct",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"unprocessed_record_ct": {
+							"value": {
+								"value": "@pipeline().parameters.unprocessed_record_ct",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"updated_record_ct": {
+							"value": {
+								"value": "@pipeline().parameters.updated_record_ct",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"completed_ind": {
+							"value": {
+								"value": "@equals(pipeline().parameters.completed_ind,'1')",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LoggerDatabase",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"process_batch_key": {
+				"type": "string"
+			},
+			"source_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"inserted_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"updated_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"deleted_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"completed_ind": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"unprocessed_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"advanced_version_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"exception_record_ct": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"comments": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Logging"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-08T15:02:08Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

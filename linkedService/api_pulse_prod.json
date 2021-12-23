@@ -1,0 +1,13 @@
+{
+	"name": "api_pulse_prod",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://airco-ops-pulse-api-prod.azurewebsites.net/",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		},
+		"annotations": []
+	}
+}

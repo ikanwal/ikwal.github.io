@@ -1,0 +1,283 @@
+{
+	"name": "getDremioCatalogData",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy DremioCatalogDataSpaces",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET"
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DremioCatalogResourcesREST",
+						"type": "DatasetReference",
+						"parameters": {
+							"dremioFacadeServiceEndpoint": {
+								"value": "@pipeline().parameters.dremioFacadeServiceEndpoint",
+								"type": "Expression"
+							},
+							"dremioInstanceName": {
+								"value": "@pipeline().parameters.dremioInstanceName",
+								"type": "Expression"
+							},
+							"dremioUserPwdSecretName": {
+								"value": "@pipeline().parameters.dremioUserPwdSecretName",
+								"type": "Expression"
+							},
+							"dremioUserName": {
+								"value": "@pipeline().parameters.dremioUserName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DremioJSONCatalogOutput",
+						"type": "DatasetReference",
+						"parameters": {
+							"dremioInstanceName": {
+								"value": "@pipeline().parameters.dremioInstanceName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "LookupSpaceName",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Copy DremioCatalogDataSpaces",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "DremioJSONCatalogOutput",
+						"type": "DatasetReference",
+						"parameters": {
+							"dremioInstanceName": {
+								"value": "@pipeline().parameters.dremioInstanceName",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachSetSpaceVar",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LookupSpaceName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LookupSpaceName').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Set spaceName",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set spaceId",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "spacename",
+								"value": {
+									"value": "@encodeUriComponent(item().path[0])",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Copy DremioSpaceDetails",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set spaceName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET"
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DremioCatalogDetailsREST",
+									"type": "DatasetReference",
+									"parameters": {
+										"space": {
+											"value": "@variables('spacename')",
+											"type": "Expression"
+										},
+										"dremioFacadeServiceEndpoint": {
+											"value": "@pipeline().parameters.dremioFacadeServiceEndpoint",
+											"type": "Expression"
+										},
+										"dremioInstanceName": {
+											"value": "@pipeline().parameters.dremioInstanceName",
+											"type": "Expression"
+										},
+										"dremioUserPwdSecretName": {
+											"value": "@pipeline().parameters.dremioUserPwdSecretName",
+											"type": "Expression"
+										},
+										"dremioUserName": {
+											"value": "@pipeline().parameters.dremioUserName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DremioJSONCatalogOoutput_details",
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@variables('spaceId')",
+											"type": "Expression"
+										},
+										"dremioInstanceName": {
+											"value": "@pipeline().parameters.dremioInstanceName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Set spaceId",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "spaceId",
+								"value": {
+									"value": "@item().id",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"dremioFacadeServiceEndpoint": {
+				"type": "string",
+				"defaultValue": "https://dremio-service-qa.pwclabs.pwcglb.com/api/v1/"
+			},
+			"dremioInstanceName": {
+				"type": "string",
+				"defaultValue": "qa-dremio-instance001.pwclabs.pwcglb.com"
+			},
+			"dremioUserPwdSecretName": {
+				"type": "string",
+				"defaultValue": "us-adv-dremio-s001-pwd"
+			},
+			"dremioUserName": {
+				"type": "string",
+				"defaultValue": "US_adv_Dremio_s001"
+			}
+		},
+		"variables": {
+			"spacename": {
+				"type": "String"
+			},
+			"spaceId": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-02T02:05:16Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

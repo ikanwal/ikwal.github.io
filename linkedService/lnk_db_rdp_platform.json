@@ -1,0 +1,20 @@
+{
+	"name": "lnk_db_rdp_platform",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://northeurope.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lnk_kv_rdp_bc",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "prd-Databrick-Token-Platform-RDP"
+			},
+			"existingClusterId": "1112-164517-urged821"
+		},
+		"annotations": []
+	}
+}

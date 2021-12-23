@@ -1,0 +1,26 @@
+{
+	"name": "ds_sftp_output1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sftp_informatica_pwc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ftp_filepath": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"folderPath": {
+					"value": "@dataset().ftp_filepath",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

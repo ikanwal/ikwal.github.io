@@ -1,0 +1,15 @@
+{
+	"name": "ds_sql_rdpcrm_azure_db",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lnk_sql_azure_ingestion",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CRMRDP/DataEngineering"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable"
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

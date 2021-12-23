@@ -1,0 +1,50 @@
+{
+	"name": "dsFFSource",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SHIR_SourcePath",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sourcepath": {
+				"type": "string",
+				"defaultValue": "data"
+			},
+			"delimiter": {
+				"type": "string"
+			},
+			"sourcefile": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@dataset().sourcefile",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().sourcepath",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": {
+				"value": "@dataset().delimiter",
+				"type": "Expression"
+			},
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "customer_id~identity_code~seq~blank~first_surname~first_name~sex~civil_status~address_type1~zone1~city1~use_this1~address_type2~zone2~city2~use_this2~telephone_type1~addr_tel_type1~telephone_type2~addr_tel_type2~income_payment_type~income_payment_day~reviewed~company~second_surname~middle_name~birth_date~address_number1~province1~country1~po_box1~strata1~address_number2~province2~country2~po_box2~strata2~area_code1~telephone_number1~extention1~country_code1~area_code2~telephone_number2~extention2~country_code2~ocupation~profession~income~persons_in_charge~work_timetable_start~work_timetable_end~user_defined1~return_id~qualification~territorio~data_date",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

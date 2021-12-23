@@ -1,0 +1,93 @@
+{
+	"name": "SEND_EMAIL_NOTIFICATION",
+	"properties": {
+		"description": "This Pipeline can be used to send Email Alerts",
+		"activities": [
+			{
+				"name": "Send_Email",
+				"description": "This is to send error email",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-62.northeurope.logic.azure.com:443/workflows/bbd53bef627d44029b2c996b45aa2dd1/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=u-GC01O4yghBe79dL2XjADcY1GDdtdCjZSGYK80G9O8",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"value": "@concat('{\"Subject\": \"', if(equals(toUpper(pipeline().parameters.status), 'F'), 'FAILED - ', 'SUCCESSFUL - '), pipeline().parameters.jobGroupName,\n' (Job Group ', pipeline().parameters.jobGroup,\nif(greater(length(trim(pipeline().parameters.jobNum)),0), concat(', Job Number ', pipeline().parameters.jobNum), ''),\nif(greater(length(trim(pipeline().parameters.tableName)),0), concat(', Table ', pipeline().parameters.tableName), ''), ')\",',\n'\"Message\": \"<b>Pipeline Name: </b>', pipeline().parameters.pipelineName, '<br />',\n'<b>Status: </b>', if(equals(toUpper(pipeline().parameters.status), 'F'), '<font color=''red''>FAILED</font>', '<font color=''green''>SUCCESSFUL</font>'), '<br />',\n'<b>Job Type: </b>', pipeline().parameters.jobType, '<br />',\n'<b>Job Group Criticality: </b>', pipeline().parameters.jobGroupCriticality, '<br />',\n'<b>Technical Dependencies: </b>', pipeline().parameters.TechDependencies, '<br />',\n'<b>Business Dependencies: </b>', pipeline().parameters.BizDependencies,' <br />',\n'<b>Time: </b>', utcnow(), '<br /><br />',\n'<b>Error Message: </b>', pipeline().parameters.errorMsg, '<br /><br />',\n'<b>For more details, please visit: </b>', pipeline().parameters.url, '<br />',\n'\", \"EmailTo\": \"', pipeline().parameters.emailIDs, '\"}')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"jobGroupName": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"jobGroup": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"jobNum": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"tableName": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"pipelineName": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"jobType": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"jobGroupCriticality": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"TechDependencies": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"BizDependencies": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"errorMsg": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"url": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"emailIDs": {
+				"type": "string",
+				"defaultValue": "N/A"
+			},
+			"status": {
+				"type": "string",
+				"defaultValue": "S or F"
+			}
+		},
+		"folder": {
+			"name": "Generic Pipelines - DO NOT CHANGE"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-08-12T15:26:54Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

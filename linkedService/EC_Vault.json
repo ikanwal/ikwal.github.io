@@ -1,0 +1,12 @@
+{
+	"name": "EC_Vault",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://ap001770-mprvxf2git7rk.vault.azure.net/"
+		},
+		"description": "Primary EC Vault",
+		"annotations": []
+	}
+}

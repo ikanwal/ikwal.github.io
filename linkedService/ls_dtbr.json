@@ -1,0 +1,32 @@
+{
+	"name": "ls_dtbr",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "@linkedService().Databrick_Workspace_URL",
+			"authentication": "MSI",
+			"workspaceResourceId": "@linkedService().workspace_resource_id",
+			"existingClusterId": "@linkedService().dbr_cluster_id"
+		},
+		"connectVia": {
+			"referenceName": "SHIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"parameters": {
+			"dbr_cluster_id": {
+				"type": "string"
+			},
+			"Secret_name": {
+				"type": "string"
+			},
+			"Databrick_Workspace_URL": {
+				"type": "string"
+			},
+			"workspace_resource_id": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}

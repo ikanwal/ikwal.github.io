@@ -1,0 +1,722 @@
+{
+	"name": "PL_PWR_EDM_01_SQL_ADF01",
+	"properties": {
+		"activities": [
+			{
+				"name": "FetchTableList",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "logJobGroupStarted",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('SELECT jg.jobGroupName, jg.jobGroupCriticality, jg.TechDependencies, jg.BizDependencies, jg.successNotificationEmailIDs jgSuccessNotificationEmailIDs, jg.failureNotificationEmailIDs jgFailureNotificationEmailIDs, jq.*, DATEADD(minute, -5, CURRENT_TIMESTAMP) ENDTIME  FROM audit.tblJobGroup jg, audit.tblJobQueue jq WHERE jg.pkTblJobGroup=jq.jobGroup AND jq.jobGroup=', pipeline().parameters.jobGroup, ' AND jq.jobOrder=', pipeline().parameters.jobOrder, ' AND UPPER(isActive)=''', 'Y''')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_PWR_AuditDB",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachTable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "FetchTableList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('FetchTableList').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 50,
+					"activities": [
+						{
+							"name": "IntentionallyThrowError3",
+							"description": "This component was added intentionally to throw an error",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "FetchData",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[audit].[NON_EXISTING_SP]"
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_PWR_AuditDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "FetchData",
+							"description": "Copy activity to copy each partition from source database store to destination store.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@if(equals(length(item().FilterQuery),0),concat('SELECT * FROM ', item().sourceSchemaName, '.', item().sourceTblName), item().FilterQuery)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureBlobFSSink",
+									"maxConcurrentConnections": 100
+								},
+								"enableStaging": false,
+								"parallelCopies": 6,
+								"enableSkipIncompatibleRow": true,
+								"redirectIncompatibleRowSettings": {
+									"linkedServiceName": {
+										"referenceName": "LS_PWR_BLOB_33",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@item().targetFilePath",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 0
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_PWR_SQL_WinAuth_DYNAMIC",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_ds_servername": {
+											"value": "@{item().sourceDBServer}",
+											"type": "Expression"
+										},
+										"p_ds_dbname": {
+											"value": "@{item(). sourceDBName}",
+											"type": "Expression"
+										},
+										"p_ds_username": {
+											"value": "@{item().sourceDBUser}",
+											"type": "Expression"
+										},
+										"p_ds_secretname": {
+											"value": "@{item().sourceDBPwdSecretName}",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_PWR_ADLSG2_33_Blkload",
+									"type": "DatasetReference",
+									"parameters": {
+										"FolderPath": {
+											"value": "@concat(item().targetContainer, item().targetFilePath, '/',  toLower(item().sourceTblName))",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@toLower(item().sourceTblName)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Send_Error_email1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "FetchTableList",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SEND_EMAIL_NOTIFICATION",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"jobGroupName": " ",
+						"jobGroup": {
+							"value": "@pipeline().parameters.jobGroup",
+							"type": "Expression"
+						},
+						"jobNum": " ",
+						"tableName": " ",
+						"pipelineName": " @concat(pipeline().DataFactory, ' / ', pipeline().Pipeline)",
+						"jobType": " ",
+						"jobGroupCriticality": " ",
+						"TechDependencies": " ",
+						"BizDependencies": " ",
+						"errorMsg": "FetchTableList failed",
+						"url": " ",
+						"emailIDs": "gdatalakesupportteam@bp.com",
+						"status": "F"
+					}
+				}
+			},
+			{
+				"name": "logJobGroupStarted",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[SP_LOG_RUN_DETAILS_NEW]",
+					"storedProcedureParameters": {
+						"errorMsg": {
+							"type": "String"
+						},
+						"fkJobQueue": {
+							"type": "Int32"
+						},
+						"jobGroup": {
+							"value": {
+								"value": "@pipeline().parameters.jobGroup",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"jobNum": {
+							"type": "Int32"
+						},
+						"jobOrder": {
+							"value": {
+								"value": "@pipeline().parameters.jobOrder",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"jobStepNum": {
+							"type": "Int32"
+						},
+						"operation": {
+							"value": "JOB_GROUP_STARTED",
+							"type": "String"
+						},
+						"processingDetails": {
+							"type": "String"
+						},
+						"recFailed": {
+							"type": "Int32"
+						},
+						"recIngested": {
+							"type": "Int32"
+						},
+						"recInSource": {
+							"type": "Int32"
+						},
+						"recProcessed": {
+							"type": "Int32"
+						},
+						"runID": {
+							"value": {
+								"value": "@pipeline().runid",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"status": {
+							"value": "R",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_PWR_AuditDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "logJobGroupFailure1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Send_Error_email1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[SP_LOG_RUN_DETAILS_NEW]",
+					"storedProcedureParameters": {
+						"errorMsg": {
+							"value": "FetchTableList failed",
+							"type": "String"
+						},
+						"fkJobQueue": {
+							"type": "Int32"
+						},
+						"jobGroup": {
+							"type": "Int32"
+						},
+						"jobNum": {
+							"type": "Int32"
+						},
+						"jobOrder": {
+							"type": "Int32"
+						},
+						"jobStepNum": {
+							"type": "Int32"
+						},
+						"operation": {
+							"value": "JOB_GROUP_FAILED",
+							"type": "String"
+						},
+						"processingDetails": {
+							"type": "String"
+						},
+						"recFailed": {
+							"type": "Int32"
+						},
+						"recIngested": {
+							"type": "Int32"
+						},
+						"recInSource": {
+							"type": "Int32"
+						},
+						"recProcessed": {
+							"type": "Int32"
+						},
+						"runID": {
+							"value": {
+								"value": "@pipeline().runid",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"status": {
+							"value": "F",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_PWR_AuditDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "logJobGroupFailure2",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Send_Error_email2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[SP_LOG_RUN_DETAILS_NEW]",
+					"storedProcedureParameters": {
+						"errorMsg": {
+							"value": "ForEachTable failed. Please see job level logs for details.",
+							"type": "String"
+						},
+						"fkJobQueue": {
+							"type": "Int32"
+						},
+						"jobGroup": {
+							"value": {
+								"value": "@pipeline().parameters.jobGroup",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"jobNum": {
+							"type": "Int32"
+						},
+						"jobOrder": {
+							"type": "Int32"
+						},
+						"jobStepNum": {
+							"type": "Int32"
+						},
+						"operation": {
+							"value": "JOB_GROUP_FAILED",
+							"type": "String"
+						},
+						"processingDetails": {
+							"type": "String"
+						},
+						"recFailed": {
+							"type": "Int32"
+						},
+						"recIngested": {
+							"type": "Int32"
+						},
+						"recInSource": {
+							"type": "Int32"
+						},
+						"recProcessed": {
+							"type": "Int32"
+						},
+						"runID": {
+							"value": {
+								"value": "@pipeline().runid",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"status": {
+							"value": "F",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_PWR_AuditDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "logJobGroupSuccess",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEachTable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[SP_LOG_RUN_DETAILS_NEW]",
+					"storedProcedureParameters": {
+						"errorMsg": {
+							"type": "String"
+						},
+						"fkJobQueue": {
+							"type": "Int32"
+						},
+						"jobGroup": {
+							"value": {
+								"value": "@pipeline().parameters.jobGroup",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"jobNum": {
+							"type": "Int32"
+						},
+						"jobOrder": {
+							"type": "Int32"
+						},
+						"jobStepNum": {
+							"type": "Int32"
+						},
+						"operation": {
+							"value": "JOB_GROUP_SUCCESSFUL",
+							"type": "String"
+						},
+						"processingDetails": {
+							"type": "String"
+						},
+						"recFailed": {
+							"type": "Int32"
+						},
+						"recIngested": {
+							"type": "Int32"
+						},
+						"recInSource": {
+							"type": "Int32"
+						},
+						"recProcessed": {
+							"type": "Int32"
+						},
+						"runID": {
+							"value": {
+								"value": "@pipeline().runid",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"status": {
+							"value": "S",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_PWR_AuditDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "IntentionallyThrowError1",
+				"description": "This component was added intentionally to throw an error",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "logJobGroupFailure1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[NON_EXISTING_SP]"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_PWR_AuditDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "IntentionallyThrowError2",
+				"description": "This component was added intentionally to throw an error",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "logJobGroupFailure2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[audit].[NON_EXISTING_SP]"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_PWR_AuditDB",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Send_Success_email",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "logJobGroupSuccess",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SEND_EMAIL_NOTIFICATION",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"jobGroupName": {
+							"value": "@activity('FetchTableList').output.value[0].jobGroupName",
+							"type": "Expression"
+						},
+						"jobGroup": {
+							"value": "@activity('FetchTableList').output.value[0].jobGroup",
+							"type": "Expression"
+						},
+						"jobNum": " ",
+						"tableName": " ",
+						"pipelineName": {
+							"value": "@concat(pipeline().DataFactory, ' / ', pipeline().Pipeline)",
+							"type": "Expression"
+						},
+						"jobType": {
+							"value": "@activity('FetchTableList').output.value[0].fkJobType",
+							"type": "Expression"
+						},
+						"jobGroupCriticality": {
+							"value": "@activity('FetchTableList').output.value[0].jobGroupCriticality",
+							"type": "Expression"
+						},
+						"TechDependencies": {
+							"value": "@activity('FetchTableList').output.value[0].TechDependencies",
+							"type": "Expression"
+						},
+						"BizDependencies": {
+							"value": "@activity('FetchTableList').output.value[0].BizDependencies",
+							"type": "Expression"
+						},
+						"errorMsg": " ",
+						"url": " ",
+						"emailIDs": {
+							"value": "@activity('FetchTableList').output.value[0].jgSuccessNotificationEmailIDs",
+							"type": "Expression"
+						},
+						"status": "S"
+					}
+				}
+			},
+			{
+				"name": "Send_Error_email2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEachTable",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SEND_EMAIL_NOTIFICATION",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"jobGroupName": {
+							"value": "@activity('FetchTableList').output.value[0].jobGroupName",
+							"type": "Expression"
+						},
+						"jobGroup": {
+							"value": "@activity('FetchTableList').output.value[0].jobGroup",
+							"type": "Expression"
+						},
+						"jobNum": " ",
+						"tableName": " ",
+						"pipelineName": {
+							"value": "@concat(pipeline().DataFactory, ' / ', pipeline().Pipeline)",
+							"type": "Expression"
+						},
+						"jobType": {
+							"value": "@activity('FetchTableList').output.value[0].fkJobType",
+							"type": "Expression"
+						},
+						"jobGroupCriticality": {
+							"value": "@activity('FetchTableList').output.value[0].jobGroupCriticality",
+							"type": "Expression"
+						},
+						"TechDependencies": {
+							"value": "@activity('FetchTableList').output.value[0].TechDependencies",
+							"type": "Expression"
+						},
+						"BizDependencies": {
+							"value": "@activity('FetchTableList').output.value[0].BizDependencies",
+							"type": "Expression"
+						},
+						"errorMsg": "ForEachTable failed. Please see job level logs for details.",
+						"url": " ",
+						"emailIDs": {
+							"value": "@activity('FetchTableList').output.value[0].jgFailureNotificationEmailIDs",
+							"type": "Expression"
+						},
+						"status": "F"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"jobGroup": {
+				"type": "string"
+			},
+			"jobOrder": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "POWER/EDM/EDM_SQL_Azure_Latest"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-08-12T15:26:55Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

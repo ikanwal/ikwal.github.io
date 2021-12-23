@@ -1,0 +1,86 @@
+{
+	"name": "LocationDetectionFeedExcel",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_EC_Blob_Store",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "datalake-stage"
+			},
+			"sheetIndex": 0,
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "ASSOCIATE_LOCATION_CLASSIFICATION_CD",
+				"type": "String"
+			},
+			{
+				"name": "ASSOCIATE_LOCATION_CLASSIFICATION_DESC",
+				"type": "String"
+			},
+			{
+				"name": "CHANGE_TYPE",
+				"type": "String"
+			},
+			{
+				"name": "CORP_ID",
+				"type": "String"
+			},
+			{
+				"name": "DETECTION_PERIOD_ID",
+				"type": "String"
+			},
+			{
+				"name": "DETECTION_RUN_ID",
+				"type": "String"
+			},
+			{
+				"name": "DETECTION_RUN_TS",
+				"type": "String"
+			},
+			{
+				"name": "MOST_RECENT_RUN_FOR_PERIOD_IND",
+				"type": "String"
+			},
+			{
+				"name": "MOST_RECENT_RUN_IND",
+				"type": "String"
+			},
+			{
+				"name": "PERSON_ID",
+				"type": "String"
+			},
+			{
+				"name": "PREV_ASSOCIATE_LOCATION_CLASSIFICATION_CD",
+				"type": "String"
+			},
+			{
+				"name": "PREV_ASSOCIATE_LOCATION_CLASSIFICATION_DESC",
+				"type": "String"
+			},
+			{
+				"name": "PREV_DETECTION_PERIOD_ID",
+				"type": "String"
+			},
+			{
+				"name": "PREV_PERIOD_DETECTION_RUN_ID",
+				"type": "String"
+			},
+			{
+				"name": "PREV_RECOMMEND_ACTION",
+				"type": "String"
+			},
+			{
+				"name": "RECOMMEND_ACTION",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

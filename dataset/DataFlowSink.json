@@ -1,0 +1,63 @@
+{
+	"name": "DataFlowSink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "idmt420170312",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"container": {
+				"type": "String"
+			},
+			"folderPath": {
+				"type": "String"
+			},
+			"delimiter": {
+				"type": "String"
+			},
+			"structure": {
+				"type": "Object"
+			},
+			"quoteChar": {
+				"type": "String"
+			},
+			"firstRowAsHeader": {
+				"type": "Bool",
+				"defaultValue": false
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@dataset().folderPath",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": {
+				"value": "@dataset().delimiter",
+				"type": "Expression"
+			},
+			"escapeChar": "\\",
+			"firstRowAsHeader": {
+				"value": "@dataset().firstRowAsHeader",
+				"type": "Expression"
+			},
+			"quoteChar": {
+				"value": "@dataset().quoteChar",
+				"type": "Expression"
+			}
+		},
+		"schema": {
+			"value": "@dataset().structure",
+			"type": "Expression"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

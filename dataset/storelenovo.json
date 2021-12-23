@@ -1,0 +1,19 @@
+{
+	"name": "storelenovo",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "storelenovo",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "containerblob"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

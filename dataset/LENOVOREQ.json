@@ -1,0 +1,54 @@
+{
+	"name": "LENOVOREQ",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LENOVOREQ",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "IntialLenovoRequest.json",
+				"container": "demo"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"country": {
+					"type": "string"
+				},
+				"entityIds": {
+					"type": "string"
+				},
+				"entities": {
+					"type": "string"
+				},
+				"service": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"source": {
+					"type": "string"
+				},
+				"dataPeriodStartDate": {
+					"type": "string"
+				},
+				"dataPeriodEndDate": {
+					"type": "string"
+				},
+				"dueDate": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

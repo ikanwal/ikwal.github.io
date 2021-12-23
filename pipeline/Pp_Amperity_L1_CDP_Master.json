@@ -1,0 +1,1329 @@
+{
+	"name": "Pp_Amperity_L1_CDP_Master",
+	"properties": {
+		"activities": [
+			{
+				"name": "Check_Process_Date",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "SP_Process_Start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.ProcessDate,null)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set_Pipeline_Process_Date",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Process_Date",
+								"value": {
+									"value": "@pipeline().parameters.ProcessDate",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Set_Process_Date",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Process_Date",
+								"value": {
+									"value": "@addhours(utcnow(),-7)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup_Config",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Check_Process_Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "Src_ConfigFile",
+						"type": "DatasetReference",
+						"parameters": {
+							"ConfigFileDir": {
+								"value": "@pipeline().parameters.Adls_Path",
+								"type": "Expression"
+							},
+							"ConfigFileName": {
+								"value": "@pipeline().parameters.Config_File",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Validation_UC_Done",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Validation_Xref_Done",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Config').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Notebook_Data_Validation",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "Cpy_Parq_Blob_Adls_Amperity_Inbound",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@item().Notebook_Path",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"Audit_Log_Table": {
+										"value": "@item().Auditlogtbname",
+										"type": "Expression"
+									},
+									"Datafactory_Name": {
+										"value": "@pipeline().DataFactory",
+										"type": "Expression"
+									},
+									"Dup_Check_Cols": {
+										"value": "@item().DupColumns",
+										"type": "Expression"
+									},
+									"Input_File": {
+										"value": "@item().InputFile",
+										"type": "Expression"
+									},
+									"Input_File_Cols": {
+										"value": "@item().InputColumns",
+										"type": "Expression"
+									},
+									"Not_Null_Cols": {
+										"value": "@item().NotNullColumns",
+										"type": "Expression"
+									},
+									"Pipeline_Name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"Pipeline_RunId": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"Source_Dir_Date": {
+										"value": "@variables('Process_Date')",
+										"type": "Expression"
+									},
+									"Source_Path": {
+										"value": "@item().sourcepath",
+										"type": "Expression"
+									},
+									"Tgt_Path": {
+										"value": "@item().Tgtpath",
+										"type": "Expression"
+									},
+									"Output_File": {
+										"value": "@item().OutputFileName",
+										"type": "Expression"
+									},
+									"synapse_scope": {
+										"value": "@item().synapse_scope",
+										"type": "Expression"
+									},
+									"synapse_key": {
+										"value": "@item().synapse_key",
+										"type": "Expression"
+									},
+									"temp_dir": {
+										"value": "@item().temp_dir",
+										"type": "Expression"
+									},
+									"Duplicate_Flag": {
+										"value": "@item().Dup_Flag",
+										"type": "Expression"
+									},
+									"NotNull_Flag": {
+										"value": "@item().NotNull_Flag",
+										"type": "Expression"
+									},
+									"MergeFile_Flag": {
+										"value": "@item().MergeFile_Flag",
+										"type": "Expression"
+									},
+									"ValidationTable": {
+										"value": "@item().Validationtable",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_dbr_amperity",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Lookup_Audit",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Notebook_Data_Validation",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"sqlReaderQuery": {
+										"value": "@concat('select count(*) as Error_Count from dbo.Amperity_Data_Validation_Logs where cast(Process_Date as date)=''',variables('Process_Date'),''' and File_Name=''',item().InputFile,''' and (null_flag=''Y'' or dup_flag=''Y''  or invalid_schema_flag=''Y'' or threshold_val_flag=''Y'')')",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "Dw_Amperity_Inbound",
+									"type": "DatasetReference",
+									"parameters": {
+										"Schema_Name": "dbo",
+										"Table_Name": "Amperity_Data_Validation_Logs"
+									}
+								}
+							}
+						},
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Lookup_Audit",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(activity('Lookup_Audit').output.firstRow.Error_Count,1)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Send_Audit_Flag_Email",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "Send_Email_TM",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": false,
+											"parameters": {
+												"EmailTo": "ttooprani@mgmresorts.com",
+												"Message": {
+													"value": "@concat('Data Validation Error occurred for file:''',item().InputFile,'''')",
+													"type": "Expression"
+												},
+												"Subject": "Data Validation Error for Amperity File",
+												"Activity": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SP_Fail_Data Validation_Notebook",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Notebook_Data_Validation",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.ADFLogSPName",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"Datafactory_Name": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Load_Type": {
+										"value": "Full",
+										"type": "String"
+									},
+									"Pipeline_Name": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Process_Name": {
+										"value": "Amperity",
+										"type": "String"
+									},
+									"Process_Status": {
+										"value": "Failed",
+										"type": "String"
+									},
+									"Table_Name": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_synapse_adbdwdbo",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "SP_Fail_Lookup_Audit",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Lookup_Audit",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.ADFLogSPName",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"Datafactory_Name": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Load_Type": {
+										"value": "Full",
+										"type": "String"
+									},
+									"Pipeline_Name": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Process_Name": {
+										"value": "Amperity",
+										"type": "String"
+									},
+									"Process_Status": {
+										"value": "Failed",
+										"type": "String"
+									},
+									"Table_Name": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_synapse_adbdwdbo",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "SP_Fail_Alert_Flag",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "If Condition1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.ADFLogSPName",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"Datafactory_Name": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Load_Type": {
+										"value": "Full",
+										"type": "String"
+									},
+									"Pipeline_Name": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Process_Name": {
+										"value": "Amperity",
+										"type": "String"
+									},
+									"Process_Status": {
+										"value": "Failed",
+										"type": "String"
+									},
+									"Table_Name": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_synapse_adbdwdbo",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Cpy_Parq_Blob_Adls_Amperity_Inbound",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"wildcardFileName": "*"
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Src_Parq_Amperity_Inound_Dynamic_Path",
+									"type": "DatasetReference",
+									"parameters": {
+										"Blob_Path": {
+											"value": "@concat(item().Amperity_Blob_Directory,'/',formatDateTime(pipeline().parameters.ProcessDate,'yyyy-MM-dd'),'/',item().InputFile,'_',formatDateTime(pipeline().parameters.ProcessDate, 'yyyyMMdd'),'.parquet')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Adls_Parq_Amperity_Inbound_Dynamic_Path",
+									"type": "DatasetReference",
+									"parameters": {
+										"FolderPath": {
+											"value": "@concat(item().AdlsPath,'/',formatDateTime(pipeline().parameters.ProcessDate,'yyyy-MM-dd'),'/',item().InputFile,'_',formatDateTime(pipeline().parameters.ProcessDate, 'yyyyMMdd'),'.parquet')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "SP_Fail_Copy_File",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Cpy_Parq_Blob_Adls_Amperity_Inbound",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@pipeline().parameters.ADFLogSPName",
+									"type": "Expression"
+								},
+								"storedProcedureParameters": {
+									"Datafactory_Name": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Load_Type": {
+										"value": "Full",
+										"type": "String"
+									},
+									"Pipeline_Name": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Process_Name": {
+										"value": "Amperity",
+										"type": "String"
+									},
+									"Process_Status": {
+										"value": "Failed",
+										"type": "String"
+									},
+									"Table_Name": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_synapse_adbdwdbo",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "SP_Process_Start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.ADFLogSPName",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"Datafactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Load_Type": {
+							"value": "Full",
+							"type": "String"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Pipeline_RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Process_Name": {
+							"value": "Amperity",
+							"type": "String"
+						},
+						"Process_Status": {
+							"value": "In Progress",
+							"type": "String"
+						},
+						"Table_Name": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_synapse_adbdwdbo",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_Fail_Check_Process_Date",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Check_Process_Date",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.ADFLogSPName",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"Datafactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Load_Type": {
+							"value": "Full",
+							"type": "String"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Pipeline_RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Process_Name": {
+							"value": "Amperity",
+							"type": "String"
+						},
+						"Process_Status": {
+							"value": "Failed",
+							"type": "String"
+						},
+						"Table_Name": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_synapse_adbdwdbo",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_Fail_Config",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Config",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.ADFLogSPName",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"Datafactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Load_Type": {
+							"value": "Full",
+							"type": "String"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Pipeline_RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Process_Name": {
+							"value": "Amperity",
+							"type": "String"
+						},
+						"Process_Status": {
+							"value": "Failed",
+							"type": "String"
+						},
+						"Table_Name": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_synapse_adbdwdbo",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_Process_Complete",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.ADFLogSPName",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"Datafactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Load_Type": {
+							"value": "Full",
+							"type": "String"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Pipeline_RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Process_Name": {
+							"value": "Amperity",
+							"type": "String"
+						},
+						"Process_Status": {
+							"value": "Completed",
+							"type": "String"
+						},
+						"Table_Name": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_synapse_adbdwdbo",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Send_Failure_Email_Config",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Config",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Send_Email_TM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EmailTo": "ttooprani@mgmresorts.com",
+						"Message": {
+							"value": "Amperity L1 jobs got failed. Please check ADF logs for more details.",
+							"type": "Expression"
+						},
+						"Subject": {
+							"value": "Amperity L1 Process Failed",
+							"type": "Expression"
+						},
+						"Activity": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Send_Completion_Email",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Send_Email_TM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EmailTo": "ttooprani@mgmresorts.com",
+						"Message": {
+							"value": "@activity('Lookup_Config').output.value[1].SuccessEmailMessage",
+							"type": "Expression"
+						},
+						"Subject": {
+							"value": "@activity('Lookup_Config').output.value[1].SuccessEmailSubject",
+							"type": "Expression"
+						},
+						"Activity": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Validation_UC_Done",
+				"type": "Validation",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Src_Parq_Amperity_Inound_Dynamic",
+						"type": "DatasetReference",
+						"parameters": {
+							"FolderPath": {
+								"value": "@concat(activity('Lookup_Config').output.value[1].Amperity_Blob_Directory,'/',formatDateTime(variables('Process_Date'),'yyyy-MM-dd'))",
+								"type": "Expression"
+							},
+							"FileName": {
+								"value": "@concat(activity('Lookup_Config').output.value[1].InputFile,'_',formatDateTime(variables('Process_Date'), 'yyyyMMdd'),'.parquet.DONE')",
+								"type": "Expression"
+							}
+						}
+					},
+					"timeout": "0.02:00:00",
+					"sleep": 10
+				}
+			},
+			{
+				"name": "Validation_Xref_Done",
+				"type": "Validation",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Src_Parq_Amperity_Inound_Dynamic",
+						"type": "DatasetReference",
+						"parameters": {
+							"FolderPath": {
+								"value": "@concat(activity('Lookup_Config').output.value[0].Amperity_Blob_Directory,'/',formatDateTime(variables('Process_Date'),'yyyy-MM-dd'))",
+								"type": "Expression"
+							},
+							"FileName": {
+								"value": "@concat(activity('Lookup_Config').output.value[0].InputFile,'_',formatDateTime(variables('Process_Date'), 'yyyyMMdd'),'.parquet.DONE')",
+								"type": "Expression"
+							}
+						}
+					},
+					"timeout": "0.02:00:00",
+					"sleep": 10
+				}
+			},
+			{
+				"name": "SP_Fail_Config_Validation_Xref",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Validation_Xref_Done",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.ADFLogSPName",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"Datafactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Load_Type": {
+							"value": "Full",
+							"type": "String"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Pipeline_RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Process_Name": {
+							"value": "Amperity",
+							"type": "String"
+						},
+						"Process_Status": {
+							"value": "Failed",
+							"type": "String"
+						},
+						"Table_Name": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_synapse_adbdwdbo",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_Fail_Config_Validation_UC",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Validation_UC_Done",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "@pipeline().parameters.ADFLogSPName",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"Datafactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Load_Type": {
+							"value": "Full",
+							"type": "String"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Pipeline_RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Process_Name": {
+							"value": "Amperity",
+							"type": "String"
+						},
+						"Process_Status": {
+							"value": "Failed",
+							"type": "String"
+						},
+						"Table_Name": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_synapse_adbdwdbo",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Send_Failure_Email_Process_Date",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Check_Process_Date",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Send_Email_TM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EmailTo": "ttooprani@mgmresorts.com",
+						"Message": {
+							"value": "Amperity L1 jobs got failed. Please check ADF logs for more details.",
+							"type": "Expression"
+						},
+						"Subject": {
+							"value": "Amperity L1 Process Failed",
+							"type": "Expression"
+						},
+						"Activity": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Send_Failure_Email_Vaidation_UC",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Validation_UC_Done",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Send_Email_TM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EmailTo": "ttooprani@mgmresorts.com",
+						"Message": {
+							"value": "@activity('Lookup_Config').output.value[1].FailEmailMessage",
+							"type": "Expression"
+						},
+						"Subject": {
+							"value": "@activity('Lookup_Config').output.value[1].FailEmailSubject",
+							"type": "Expression"
+						},
+						"Activity": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Send_Failure_Email_Validation_Xref",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Validation_Xref_Done",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Send_Email_TM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EmailTo": "ttooprani@mgmresorts.com",
+						"Message": {
+							"value": "@activity('Lookup_Config').output.value[1].FailEmailMessage",
+							"type": "Expression"
+						},
+						"Subject": {
+							"value": "@activity('Lookup_Config').output.value[0].FailEmailSubject",
+							"type": "Expression"
+						},
+						"Activity": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ProcessDate": {
+				"type": "string",
+				"defaultValue": "\"null\""
+			},
+			"Adls_Path": {
+				"type": "string",
+				"defaultValue": "Enterprise Data Store/Secured/AmperityData/Inbound"
+			},
+			"Config_File": {
+				"type": "string",
+				"defaultValue": "ConfigFile.json"
+			},
+			"ADFLogSPName": {
+				"type": "string",
+				"defaultValue": "dbo.Sp_ADF_Pipelines_Run_Logs"
+			}
+		},
+		"variables": {
+			"Process_Date": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Amperity/Layer1"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-30T19:41:02Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

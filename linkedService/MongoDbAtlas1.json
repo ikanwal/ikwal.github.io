@@ -1,0 +1,17 @@
+{
+	"name": "MongoDbAtlas1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "MongoDbAtlas",
+		"typeProperties": {
+			"connectionString": "mongodb+srv://Iraj:@cluster0.fetaw.mongodb.net/PwC?w=majority;retryWrites=true",
+			"database": "PwC",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI1Y2FiZjExZC1jYTZmLTQ3MDMtYmQyMy02MWY3NmIxOGE3MWMiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "newIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

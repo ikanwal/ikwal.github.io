@@ -1,0 +1,236 @@
+{
+	"name": "pl_execute_job_generic_Rapper",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_valid_job_run_status",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_job_status]",
+						"storedProcedureParameters": {
+							"job_id": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.job_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sqldb__jobstatus",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Plac_switch",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "plac_valid_job_run_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@activity('plac_valid_job_run_status').output.firstRow.job_status",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "IN",
+							"activities": [
+								{
+									"name": "pl_execute_job_generic",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_execute_job_generic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"job_id": {
+												"value": "@pipeline().parameters.job_id",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "plac_update_audit_validation",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "pl_execute_job_generic",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+										"storedProcedureParameters": {
+											"action": {
+												"value": "failed",
+												"type": "String"
+											},
+											"business_date": {
+												"type": "String"
+											},
+											"control_file_name": {
+												"value": {
+													"value": "@pipeline().parameters.job_id",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"error_message": {
+												"value": {
+													"value": "@{activity('pl_execute_job_generic').error.message}",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"pipeline_id": {
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_sqldb",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "plac_webactivity_failure",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "plac_update_audit_validation",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": "www.sabcza.com",
+										"connectVia": {
+											"referenceName": "SHIR",
+											"type": "IntegrationRuntimeReference"
+										},
+										"method": "GET"
+									}
+								}
+							]
+						},
+						{
+							"value": "SU",
+							"activities": [
+								{
+									"name": "plac_Wait1",
+									"type": "Wait",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 1
+									}
+								}
+							]
+						},
+						{
+							"value": "FA",
+							"activities": [
+								{
+									"name": "plac_Wait",
+									"type": "Wait",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 5
+									}
+								},
+								{
+									"name": "plac_webactivity_failure1",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "plac_Wait",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": "www.sabcza.com",
+										"connectVia": {
+											"referenceName": "SHIR",
+											"type": "IntegrationRuntimeReference"
+										},
+										"method": "GET"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"job_id": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/GENERIC_PIPELINES/EXECUTE_DATABRICKS_JOB/LAYER_3"
+		},
+		"annotations": [
+			"@pipeline().parameters.job_id"
+		],
+		"lastPublishTime": "2021-12-03T02:55:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

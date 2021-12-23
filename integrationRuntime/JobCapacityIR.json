@@ -1,0 +1,6 @@
+{
+	"name": "JobCapacityIR",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

@@ -1,0 +1,195 @@
+{
+	"name": "PGRJSON",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "salruse2tcccbdpdev0001",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "getPGRList",
+				"fileSystem": "datafabric-prod"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"country": {
+					"type": "string"
+				},
+				"subCategory": {
+					"type": "null"
+				},
+				"lastUpdateDate": {
+					"type": "null"
+				},
+				"consumerFriendlyDecription": {
+					"type": "string"
+				},
+				"isscomBppCode": {
+					"type": "string"
+				},
+				"nonKoCategory": {
+					"type": "string"
+				},
+				"militarySpecific": {
+					"type": "string"
+				},
+				"prodStatusDesc": {
+					"type": "string"
+				},
+				"dataFabricDeletedOn": {
+					"type": "null"
+				},
+				"pgrId": {
+					"type": "string"
+				},
+				"inMarketDate": {
+					"type": "string"
+				},
+				"deleteFlag": {
+					"type": "string"
+				},
+				"eachUpc": {
+					"type": "string"
+				},
+				"caffeineIndicator": {
+					"type": "string"
+				},
+				"artmFlag": {
+					"type": "string"
+				},
+				"palletUpc": {
+					"type": "string"
+				},
+				"outOfMarketDate": {
+					"type": "string"
+				},
+				"height": {
+					"type": "number"
+				},
+				"subBottlerRelevantFlag": {
+					"type": "string"
+				},
+				"updatedBy": {
+					"type": "string"
+				},
+				"heightWidthDepthUom": {
+					"type": "string"
+				},
+				"syndicationStatusDate": {
+					"type": "null"
+				},
+				"upcOrderable": {
+					"type": "string"
+				},
+				"replacedBy": {
+					"type": "null"
+				},
+				"createDay": {
+					"type": "null"
+				},
+				"packUpc": {
+					"type": "string"
+				},
+				"consumerFriendlyDecriptionLanguage": {
+					"type": "string"
+				},
+				"nonKoFlag": {
+					"type": "string"
+				},
+				"netWeight": {
+					"type": "number"
+				},
+				"shelfLifeWeeks": {
+					"type": "string"
+				},
+				"availbilityDate": {
+					"type": "string"
+				},
+				"shelfLifeDays": {
+					"type": "number"
+				},
+				"sapMaterialTypDesc": {
+					"type": "null"
+				},
+				"grossWt": {
+					"type": "null"
+				},
+				"goldenRecordID": {
+					"type": "null"
+				},
+				"status": {
+					"type": "string"
+				},
+				"caseUpc": {
+					"type": "string"
+				},
+				"dataFabricTimeToLive": {
+					"type": "null"
+				},
+				"netWeightUom": {
+					"type": "string"
+				},
+				"sweetenerType": {
+					"type": "null"
+				},
+				"additionalDescription": {
+					"type": "string"
+				},
+				"baseUnitOfMeasure": {
+					"type": "string"
+				},
+				"lowCalorieIndicator": {
+					"type": "string"
+				},
+				"incidencePricingDescription": {
+					"type": "string"
+				},
+				"createDate": {
+					"type": "string"
+				},
+				"gtin": {
+					"type": "string"
+				},
+				"creator": {
+					"type": "string"
+				},
+				"incidencePricingCode": {
+					"type": "string"
+				},
+				"length": {
+					"type": "number"
+				},
+				"dataFabricDeleted": {
+					"type": "null"
+				},
+				"skuData": {
+					"type": "null"
+				},
+				"deleteAssetOnSalsify": {
+					"type": "null"
+				},
+				"authorizedCoveredBeverageRelevantFlag": {
+					"type": "string"
+				},
+				"width": {
+					"type": "number"
+				},
+				"additionalDescriptionLanguage": {
+					"type": "string"
+				},
+				"category": {
+					"type": "null"
+				},
+				"mdmKey": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

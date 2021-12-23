@@ -1,0 +1,38 @@
+{
+	"name": "DS_TOEDPP_SRC_ADLS_CSV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Azure_adls_l6clde1eimraw",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"file_system": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "TOEDPP"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": {
+					"value": "@dataset().file_system",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,15 @@
+{
+	"name": "US_SI_GEN2_ADLS_AP_BDL",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://csusnprodsiprocessing.dfs.core.windows.net/"
+		},
+		"connectVia": {
+			"referenceName": "bdl-dev-servers",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

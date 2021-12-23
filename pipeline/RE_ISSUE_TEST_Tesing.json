@@ -1,0 +1,80 @@
+{
+	"name": "RE_ISSUE_TEST_Tesing",
+	"properties": {
+		"activities": [
+			{
+				"name": "RE_Atlas_Mongo",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MongoDbAtlasSource",
+						"batchSize": 100,
+						"filter": ""
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "USCDO_AzureBlobStorageTest",
+								"type": "LinkedServiceReference"
+							},
+							"path": "36ba9f6b-dd0b-4f24-b43f-10de9f54dc60/rapidengage_adf/data"
+						}
+					},
+					"translator": {
+						"value": "@json(variables('jsonStr'))",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "PwcTestingcollection",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Json3",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"variables": {
+			"jsonStr": {
+				"type": "String",
+				"defaultValue": "{\"type\":\"TabularTranslator\",\"mappings\":[{\"source\":{\"path\":\"$['_id']\"},\"sink\":{\"name\":\"Engagement_id\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['favorites'][0]\"},\"sink\":{\"name\":\"favorites\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['flags'][0]\"},\"sink\":{\"name\":\"flags\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['id']\"},\"sink\":{\"name\":\"id\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['lastErrorAttempt']\"},\"sink\":{\"name\":\"lastErrorAttempt\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['lost']\"},\"sink\":{\"name\":\"lost\",\"type\":\"Boolean\"}}, {\"source\":{\"path\":\"$['lostWithdrawnDate']\"},\"sink\":{\"name\":\"lostWithdrawnDate\",\"type\":\"DateTime\"}}, {\"source\":{\"path\":\"$['markAsDeleted']\"},\"sink\":{\"name\":\"markAsDeleted\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['name']\"},\"sink\":{\"name\":\"name\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['processAttempts']\"},\"sink\":{\"name\":\"processAttempts\",\"type\":\"Int32\"}}, {\"source\":{\"path\":\"$['removed']\"},\"sink\":{\"name\":\"removed\",\"type\":\"Boolean\"}}, {\"source\":{\"path\":\"$['removedGUIDs'][0]\"},\"sink\":{\"name\":\"removedGUIDs\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['startedDateTime']\"},\"sink\":{\"name\":\"startedDateTime\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['territory']\"},\"sink\":{\"name\":\"territory\",\"type\":\"String\"}}, {\"source\":{\"path\":\"$['v']\"},\"sink\":{\"name\":\"v\",\"type\":\"Int32\"}}, {\"source\":{\"path\":\"$['withdrawn']\"},\"sink\":{\"name\":\"withdrawn\",\"type\":\"Boolean\"}},{\"source\":{\"path\":\"$['sourceSystemCode']\"},\"sink\":{\"name\":\"sourceSystemCode\",\"type\":\"String\"}},{\"source\":{\"path\":\"$['dpExtractDate']\"},\"sink\":{\"name\":\"dpExtractDate\",\"type\":\"DateTime\"}},{\"source\":{\"path\":\"$['jobLoggingKey']\"},\"sink\":{\"name\":\"jobLoggingKey\",\"type\":\"Guid\"}}],\"collectionReference\": \"\",\"mapComplexValuesToString\": true}}"
+			}
+		},
+		"folder": {
+			"name": "RapidEngage"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-19T03:40:37Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

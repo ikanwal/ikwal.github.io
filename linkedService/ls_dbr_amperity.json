@@ -1,0 +1,20 @@
+{
+	"name": "ls_dbr_amperity",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-4121122033321915.15.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_amperity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "ampdbrky"
+			},
+			"existingClusterId": "0831-182331-yawls513"
+		},
+		"annotations": []
+	}
+}

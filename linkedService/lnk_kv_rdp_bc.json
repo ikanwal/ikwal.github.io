@@ -1,0 +1,11 @@
+{
+	"name": "lnk_kv_rdp_bc",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://prd-szen-ds-kv-rdp-bc.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}

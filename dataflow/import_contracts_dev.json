@@ -1,0 +1,35 @@
+{
+	"name": "import_contracts_dev",
+	"properties": {
+		"folder": {
+			"name": "PulseSubmissions/ContractRegionHierarchy"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "api_pulse_prod",
+						"type": "LinkedServiceReference"
+					},
+					"name": "ContractsAPI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "paginationtest",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ExtractValue"
+				}
+			],
+			"script": "source(output(\n\t\tbody as ({@odata.nextLink} as string, count as short, skipToken as string, value as (contractCode as string, customerName as string, description as string, leadership as (divisionCode as string, employeeNumber as integer, familyName as string, givenName as string, graphObjectId as string, jobTitle as string, positionCode as string, primaryEmailAddress as string, role as string, stationCode as string, userPrincipalName as string)[], organizationName as string, regionName as string, stationCode as string)[]),\n\t\theaders as [string,string]\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'rest',\n\ttimeout: 140,\n\trequestInterval: 10,\n\tentity: 'api/v1/contracts',\n\tqueryParameters: ['$expand' -> 'leadership'],\n\thttpMethod: 'GET',\n\tpaginationRules: ['absoluteUrl' -> 'body.{@odata.nextLink}'],\n\tresponseFormat: ['type' -> 'json', 'documentForm' -> 'singleDocument']) ~> ContractsAPI\nContractsAPI foldDown(unroll(body.value),\n\tmapColumn(\n\t\t{_contractCode} = body.value.contractCode,\n\t\t{_customerName} = body.value.customerName,\n\t\t{_lineOfService} = body.value.description,\n\t\t{_stationCode} = body.value.stationCode\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> ExtractValue\nExtractValue sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tquoteAll: true,\n\tpreCommands: [],\n\tpostCommands: []) ~> sink1"
+		}
+	}
+}

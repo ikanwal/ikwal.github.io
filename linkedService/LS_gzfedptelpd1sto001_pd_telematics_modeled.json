@@ -1,0 +1,16 @@
+{
+	"name": "LS_gzfedptelpd1sto001_pd_telematics_modeled",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://gzfedptelpd1sto001.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "gzf-tel-modeled-pd1-air-001",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "This Linked Source will be used to backup specific container for the telematic data scientists. \nhttps://gzfedptelpd1sto001.dfs.core.windows.net/pd-telematics-modeled",
+		"annotations": []
+	}
+}

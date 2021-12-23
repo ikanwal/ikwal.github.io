@@ -1,0 +1,260 @@
+{
+	"name": "pl_main_processed_daily_4",
+	"properties": {
+		"description": "Pipeline: Runs for processed tables daily depends on daily",
+		"activities": [
+			{
+				"name": "etl_client_to_party_relationship_ind",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_wait",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "46"
+					}
+				}
+			},
+			{
+				"name": "etl_client_to_party_relationship_trust",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_wait",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "47"
+					}
+				}
+			},
+			{
+				"name": "etl_client_to_party_relationship_estate",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_wait",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "48"
+					}
+				}
+			},
+			{
+				"name": "etl_client_to_party_relationship_org",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_wait",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "49"
+					}
+				}
+			},
+			{
+				"name": "etl_client_to_party_relationship_indfor",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_wait",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "50"
+					}
+				}
+			},
+			{
+				"name": "gold_client_to_party_relationship",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "etl_client_to_party_relationship_ind",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "etl_client_to_party_relationship_trust",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "etl_client_to_party_relationship_estate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "etl_client_to_party_relationship_org",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "etl_client_to_party_relationship_indfor",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "51"
+					}
+				}
+			},
+			{
+				"name": "etl_aml_sam_entity_segmentation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "gold_client_to_party_relationship",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "56"
+					}
+				}
+			},
+			{
+				"name": "etl_aml_sam_party_account_relation_house_acct",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "etl_aml_sam_entity_segmentation",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "57"
+					}
+				}
+			},
+			{
+				"name": "etl_aml_sam_entity_seg_pop_grp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "etl_aml_sam_party_account_relation_house_acct",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_job_generic_Rapper",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": "58"
+					}
+				}
+			},
+			{
+				"name": "plac_wait",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 5
+				}
+			}
+		],
+		"folder": {
+			"name": "Processed"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:30Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

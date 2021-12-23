@@ -1,0 +1,35 @@
+{
+	"name": "dsREMongoDbSrc",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RE_AtlasProd_MongoDB",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"databaseName": "@dataset().databaseName"
+			}
+		},
+		"parameters": {
+			"databaseName": {
+				"type": "string",
+				"defaultValue": "c2c"
+			},
+			"collectionName": {
+				"type": "string",
+				"defaultValue": "AuditLog"
+			}
+		},
+		"folder": {
+			"name": "RapidEngage"
+		},
+		"annotations": [],
+		"type": "MongoDbAtlasCollection",
+		"schema": [],
+		"typeProperties": {
+			"collection": {
+				"value": "@dataset().collectionName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

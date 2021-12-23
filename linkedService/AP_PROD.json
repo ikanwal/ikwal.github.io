@@ -1,0 +1,16 @@
+{
+	"name": "AP_PROD",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "Hdfs",
+		"typeProperties": {
+			"url": "http://dayrhegapp018.enterprisenet.org:50070/webhdfs/v1",
+			"authenticationType": "Anonymous"
+		},
+		"connectVia": {
+			"referenceName": "bdl-dev-servers",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

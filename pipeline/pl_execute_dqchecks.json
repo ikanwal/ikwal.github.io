@@ -1,0 +1,395 @@
+{
+	"name": "pl_execute_dqchecks",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_lookup_schema_name",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "plac_update_ingestion_audit_validation_copy1",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_SchemaName]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_asql_amlsam",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_cluster_details",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "plac_update_ingestion_audit_validation_copy1",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_clusterDetails]",
+						"storedProcedureParameters": {
+							"inputParam": {
+								"type": "String",
+								"value": {
+									"value": "2",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_clusterdetails",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_nb_start_cluster",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_cluster_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:15:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/amlsam/utils/start_cluster"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_dtbr",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbr_cluster_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.dbr_cluster_id",
+							"type": "Expression"
+						},
+						"Secret_name": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Secret_name",
+							"type": "Expression"
+						},
+						"Databrick_Workspace_URL": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Databrick_Workspace_URL",
+							"type": "Expression"
+						},
+						"workspace_resource_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.workspace_resource_id",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_base_mount_point",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "plac_update_ingestion_audit_validation_copy1",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_base_data_mount_point]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sqldb__base_mount_point",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_nb_dqcheck",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "plac_nb_start_cluster",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "plac_lookup_base_mount_point",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "plac_lookup_schema_name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/amlsam/common/dq_checks",
+					"baseParameters": {
+						"BUSINESS_DATE": {
+							"value": "@pipeline().parameters.BUSINESS_DATE",
+							"type": "Expression"
+						},
+						"provisioned_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.provisioned_schema_name}",
+							"type": "Expression"
+						},
+						"processed_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.processed_schema_name}",
+							"type": "Expression"
+						},
+						"base_data_mount_point": {
+							"value": "@{activity('plac_lookup_base_mount_point').output.firstRow.base_data_mount_point}",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_dtbr",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbr_cluster_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.dbr_cluster_id",
+							"type": "Expression"
+						},
+						"Secret_name": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Secret_name",
+							"type": "Expression"
+						},
+						"Databrick_Workspace_URL": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Databrick_Workspace_URL",
+							"type": "Expression"
+						},
+						"workspace_resource_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.workspace_resource_id",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "plac_update_ingestion_audit_validation_copy1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+					"storedProcedureParameters": {
+						"action": {
+							"value": "start_audit",
+							"type": "String"
+						},
+						"business_date": {
+							"type": "String"
+						},
+						"control_file_name": {
+							"value": {
+								"value": "dqchecks",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"error_message": {
+							"type": "String"
+						},
+						"pipeline_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "plac_update_ingestion_audit_validation",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "plac_nb_dqcheck",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+					"storedProcedureParameters": {
+						"action": {
+							"value": "failed",
+							"type": "String"
+						},
+						"business_date": {
+							"type": "String"
+						},
+						"control_file_name": {
+							"value": {
+								"value": "dqchecks",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"error_message": {
+							"value": {
+								"value": "@{activity('plac_nb_dqcheck').error.message}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipeline_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "plac_update_ingestion_audit_validation1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "plac_nb_dqcheck",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+					"storedProcedureParameters": {
+						"action": {
+							"value": "Success",
+							"type": "String"
+						},
+						"business_date": {
+							"type": "String"
+						},
+						"control_file_name": {
+							"value": {
+								"value": "dqchecks",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"error_message": {
+							"type": "String"
+						},
+						"pipeline_id": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"BUSINESS_DATE": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/AMLSAM_MAIN_JOBS/AMLSAM_DAILY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:37Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

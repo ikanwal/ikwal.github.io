@@ -1,0 +1,61 @@
+{
+	"name": "MDM_Prep_Curated_Enrichment",
+	"properties": {
+		"activities": [
+			{
+				"name": "Hierarchy_Enrichment",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Shared/RDIP/MDM/GIF_MDM_Hierarchy"
+				},
+				"linkedServiceName": {
+					"referenceName": "lnk_db_rdp_platform",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "RetailSite_Enrichment",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Hierarchy_Enrichment",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Shared/RDIP/MDM/GIF_MDM_RetailSite"
+				},
+				"linkedServiceName": {
+					"referenceName": "lnk_db_rdp_platform",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "MDM"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-22T16:55:29Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

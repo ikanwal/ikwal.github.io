@@ -1,0 +1,41 @@
+{
+	"name": "EASDW_ActiveStatus",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "EASDW",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "ActiveStatusID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PartyID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ActiveStatusCode",
+				"type": "varchar"
+			},
+			{
+				"name": "ActiveStatusDescription",
+				"type": "varchar"
+			},
+			{
+				"name": "ProcessBatchKey",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "ons",
+			"table": "ActiveStatus"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

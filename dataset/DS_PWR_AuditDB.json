@@ -1,0 +1,16 @@
+{
+	"name": "DS_PWR_AuditDB",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_PWR_AuditDB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Power"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

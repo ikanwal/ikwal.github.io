@@ -1,0 +1,50 @@
+{
+	"name": "NotificationsPII_RawToProd",
+	"properties": {
+		"folder": {
+			"name": "NotificationsDFs"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "csnte_adls_pii_notifications_raw",
+						"type": "DatasetReference"
+					},
+					"name": "NotificationsPIIRaw"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "Prod_ADLS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "NotificationsPIISinkDelta"
+				}
+			],
+			"transformations": [
+				{
+					"name": "dcompCreateDatePII"
+				},
+				{
+					"name": "SelectRenamePII"
+				},
+				{
+					"name": "AlterRowLookForUpserts"
+				},
+				{
+					"name": "OrderByContactInfoCreateDate"
+				},
+				{
+					"name": "OrderByLastUpdated"
+				},
+				{
+					"name": "RemoveDuplicateContactInfo"
+				}
+			],
+			"script": "source(output(\n\t\trecordLocator as string,\n\t\tAAdvantageNumber as string,\n\t\tfirstName as string,\n\t\tlastName as string,\n\t\tcontactAddress as string,\n\t\tcreateDate as timestamp,\n\t\tcontactGuid as string,\n\t\tcontactGuidSeq as integer,\n\t\teventSource as string,\n\t\trequestingOrganization as string,\n\t\trequestingSystem as string,\n\t\tnotificationType as string,\n\t\ttemplateName as string,\n\t\trequestTimestamp as timestamp,\n\t\tdeliverBy as timestamp,\n\t\texpiresAt as timestamp,\n\t\tcorrelationID as string,\n\t\tgroupId as string,\n\t\tvendorName as string,\n\t\tcontactType as string,\n\t\tcontactSource as string,\n\t\tcontactFieldCode as string,\n\t\ttelcoCountryCode as integer,\n\t\tisDayofTravel as boolean,\n\t\tsentToVendorAt as timestamp,\n\t\tprocessedByVendorAt as timestamp,\n\t\treconciledAt as timestamp,\n\t\tisDelivered as boolean,\n\t\tvendorDisposition as string,\n\t\tdispositionResultCode as string,\n\t\tdispositionDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> NotificationsPIIRaw\nRemoveDuplicateContactInfo derive(dateCreated = toString(createDate, 'yyyy-MM-dd'),\n\t\tvendorName = upper(case(vendorName=='1', \"Appriss\",     case(vendorName=='2', \"Syniverse\",        case(vendorName=='3', \"Convergys\",             case(vendorName=='4', \"Varolii\",                case(vendorName=='5', \"Nuance\",                     case(vendorName=='6', \"iOS\",                         case(vendorName=='7', \"Android\",                             case(vendorName=='8', \"Twilio\", \"Unknown\")                            )                              )                    )                )            )        )    )),\n\t\tdispositionResultCodeLng = toLong(dispositionResultCode),\n\t\tlastUpdated = createDate,\n\t\tlastNameUC = upper(lastName),\n\t\tfirstNameUC = upper(firstName),\n\t\tcontactAddressUC = upper(contactAddress),\n\t\tvendorDispositionUC = upper(vendorDisposition),\n\t\tdispositionDescriptionUC = upper(dispositionDescription),\n\t\trequestingOrganizationUC = upper(requestingOrganization),\n\t\trequestingSystemUC = upper(requestingSystem),\n\t\tnotificationTypeUC = upper(notificationType),\n\t\ttemplateNameUC = upper(templateName),\n\t\tcontactTypeUC = upper(contactType),\n\t\tcontactSourceUC = upper(contactSource),\n\t\tcontactFieldCodeUC = upper(contactFieldCode),\n\t\teventSourceUC = upper(eventSource),\n\t\tcorrelationIDUC = upper(correlationID),\n\t\tcontactGuidUC = upper(contactGuid),\n\t\trecordLocatorUC = upper(recordLocator),\n\t\tAAdvantageNumberUC = upper(AAdvantageNumber)) ~> dcompCreateDatePII\ndcompCreateDatePII select(mapColumn(\n\t\tcontactGuid = contactGuidUC,\n\t\tcontactGuidSeq,\n\t\teventSource = eventSourceUC,\n\t\trecordLocator = recordLocatorUC,\n\t\tAAdvantageNumber = AAdvantageNumberUC,\n\t\tfirstName = firstNameUC,\n\t\tlastName = lastNameUC,\n\t\tcontactAddress = contactAddressUC,\n\t\trequestingOrganization = requestingOrganizationUC,\n\t\trequestingSystem = requestingSystemUC,\n\t\tnotificationType = notificationTypeUC,\n\t\ttemplateName = templateNameUC,\n\t\trequestTimestamp,\n\t\tdeliverBy,\n\t\texpiresAt,\n\t\tcorrelationId = correlationIDUC,\n\t\tgroupId,\n\t\tvendorName,\n\t\tcontactType = contactTypeUC,\n\t\tcontactSource = contactSourceUC,\n\t\tcontactFieldCode = contactFieldCodeUC,\n\t\ttelcoCountryCode,\n\t\tisDayOfTravel = isDayofTravel,\n\t\tsentToVendorAt,\n\t\tprocessedByVendorAt,\n\t\treconciledAt,\n\t\tisDelivered,\n\t\tvendorDisposition = vendorDispositionUC,\n\t\tdispositionResultCode = dispositionResultCodeLng,\n\t\tdispositionDescription = dispositionDescriptionUC,\n\t\tcreateDate,\n\t\tdateCreated,\n\t\tlastUpdated\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectRenamePII\nOrderByLastUpdated alterRow(upsertIf(true())) ~> AlterRowLookForUpserts\nNotificationsPIIRaw sort(asc(contactGuid, true),\n\tasc(contactGuidSeq, true),\n\tasc(createDate, true)) ~> OrderByContactInfoCreateDate\nSelectRenamePII sort(asc(lastUpdated, true)) ~> OrderByLastUpdated\nOrderByContactInfoCreateDate aggregate(groupBy(contactGuid,\n\t\tcontactGuidSeq),\n\teach(match(name!=\"contactGuid\"&&name!=\"contactGuidSeq\"), $$ = last($$))) ~> RemoveDuplicateContactInfo\nAlterRowLookForUpserts sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tfileSystem: 'csnte-pii',\n\tfolderPath: 'prod-pii/notificationdetails',\n\tmergeSchema: true,\n\tautoCompact: true,\n\toptimizedWrite: true,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['contactGuid','contactGuidSeq'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tcontactGuid,\n\t\tcontactGuidSeq,\n\t\teventSource,\n\t\trecordLocator,\n\t\tAAdvantageNumber,\n\t\tfirstName,\n\t\tlastName,\n\t\tcontactAddress,\n\t\trequestingOrganization,\n\t\trequestingSystem,\n\t\tnotificationType,\n\t\ttemplateName,\n\t\trequestTimestamp,\n\t\tdeliverBy,\n\t\texpiresAt,\n\t\tcorrelationId,\n\t\tgroupId,\n\t\tvendorName,\n\t\tcontactType,\n\t\tcontactSource,\n\t\tcontactFieldCode,\n\t\ttelcoCountryCode,\n\t\tisDayOfTravel,\n\t\tsentToVendorAt,\n\t\tprocessedByVendorAt,\n\t\treconciledAt,\n\t\tisDelivered,\n\t\tvendorDisposition,\n\t\tdispositionResultCode,\n\t\tdispositionDescription,\n\t\tcreateDate,\n\t\tdateCreated,\n\t\tlastUpdated\n\t),\n\tpartitionBy('key',\n\t\t0,\n\t\tdateCreated\n\t)) ~> NotificationsPIISinkDelta"
+		}
+	}
+}

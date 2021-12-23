@@ -1,0 +1,9 @@
+{
+	"name": "IrajKanwal",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2db3741c-c0a7-4397-9747-77523790ec94",
+		"tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+	}
+}

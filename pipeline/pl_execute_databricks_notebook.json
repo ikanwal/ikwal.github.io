@@ -1,0 +1,450 @@
+{
+	"name": "pl_execute_databricks_notebook",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_nb_execute_databricks_notebook",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "plac_nb_start_cluster",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "plac_lookup_schema_name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "plac_lookup_dates",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@pipeline().parameters.notebook_path",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"business_date": {
+							"value": "@{activity('plac_lookup_dates').output.firstRow.data_as_of_date}",
+							"type": "Expression"
+						},
+						"previous_business_date": {
+							"value": "@{activity('plac_lookup_dates').output.firstRow.previous_business_date}",
+							"type": "Expression"
+						},
+						"trade_date": {
+							"value": "@{activity('plac_lookup_dates').output.firstRow.trade_date} \n",
+							"type": "Expression"
+						},
+						"landing_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.landing_schema_name}",
+							"type": "Expression"
+						},
+						"curated_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.curated_schema_name}",
+							"type": "Expression"
+						},
+						"processed_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.processed_schema_name}",
+							"type": "Expression"
+						},
+						"provisioned_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.provisioned_schema_name}",
+							"type": "Expression"
+						},
+						"output_schema_name": {
+							"value": "@{activity('plac_lookup_schema_name').output.firstRow.output_schema_name}",
+							"type": "Expression"
+						},
+						"start_date": {
+							"value": "@{activity('plac_lookup_dates').output.firstRow.data_as_of_date}",
+							"type": "Expression"
+						},
+						"end_dat": {
+							"value": "@{activity('plac_lookup_dates').output.firstRow.data_as_of_date}",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_dtbr",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbr_cluster_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.dbr_cluster_id",
+							"type": "Expression"
+						},
+						"Secret_name": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Secret_name",
+							"type": "Expression"
+						},
+						"Databrick_Workspace_URL": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Databrick_Workspace_URL",
+							"type": "Expression"
+						},
+						"workspace_resource_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.workspace_resource_id",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "plac_nb_start_cluster",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_cluster_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:15:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/amlsam/utils/start_cluster"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_dtbr",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbr_cluster_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.dbr_cluster_id",
+							"type": "Expression"
+						},
+						"Secret_name": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Secret_name",
+							"type": "Expression"
+						},
+						"Databrick_Workspace_URL": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.Databrick_Workspace_URL",
+							"type": "Expression"
+						},
+						"workspace_resource_id": {
+							"value": "@activity('plac_lookup_cluster_details').output.firstrow.workspace_resource_id",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_dates",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_Date_amlsam]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_asql_amlsam",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_schema_name",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_SchemaName]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_asql_amlsam",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_cluster_details",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_clusterDetails]",
+						"storedProcedureParameters": {
+							"inputParam": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.Cluster_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_clusterdetails",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_ctrlfile_dtls",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "plac_nb_execute_databricks_notebook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_ctrlfile_details]",
+						"storedProcedureParameters": {
+							"job_id": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.job_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sql_ctrlmetadata",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_ctrlfile_dtls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('plac_lookup_ctrlfile_dtls').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "plac_lookup_dates_1",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_Date_amlsam]",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_asql_amlsam",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "plac_lookup_cluster_details_1",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_clusterDetails]",
+									"storedProcedureParameters": {
+										"inputParam": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.Cluster_id",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_clusterdetails",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "plac_nb_execute_databricks_ctrl",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "plac_lookup_cluster_details_1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "plac_lookup_dates_1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/amlsam/common/generic_script_to_create_controlfiles",
+								"baseParameters": {
+									"schema_name": {
+										"value": "@item().schema_name",
+										"type": "Expression"
+									},
+									"base_location": {
+										"value": "@item().base_location",
+										"type": "Expression"
+									},
+									"project": {
+										"value": "@item().project",
+										"type": "Expression"
+									},
+									"table_name": {
+										"value": "@item().table_name",
+										"type": "Expression"
+									},
+									"business_date": {
+										"value": "@{activity('plac_lookup_dates_1').output.firstRow.data_as_of_date}",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_dtbr",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"dbr_cluster_id": {
+										"value": "@activity('plac_lookup_cluster_details_1').output.firstrow.dbr_cluster_id",
+										"type": "Expression"
+									},
+									"Secret_name": {
+										"value": "@activity('plac_lookup_cluster_details_1').output.firstrow.Secret_name",
+										"type": "Expression"
+									},
+									"Databrick_Workspace_URL": {
+										"value": "@activity('plac_lookup_cluster_details_1').output.firstrow.Databrick_Workspace_URL",
+										"type": "Expression"
+									},
+									"workspace_resource_id": {
+										"value": "@activity('plac_lookup_cluster_details_1').output.firstrow.workspace_resource_id",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"notebook_path": {
+				"type": "string"
+			},
+			"job_id": {
+				"type": "string"
+			},
+			"Cluster_id": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/GENERIC_PIPELINES/EXECUTE_DATABRICKS_JOB/LAYER_1"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:21Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

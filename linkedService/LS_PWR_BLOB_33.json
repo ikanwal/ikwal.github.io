@@ -1,0 +1,17 @@
+{
+	"name": "LS_PWR_BLOB_33",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://zneudl1p33lakesstor.blob.core.windows.net",
+			"accountKind": "StorageV2"
+		},
+		"connectVia": {
+			"referenceName": "ADF-P40-ING-HA-IR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "This is Blob storage pointing to ADLS Gen 2 in 33 Production Resource Group",
+		"annotations": []
+	}
+}

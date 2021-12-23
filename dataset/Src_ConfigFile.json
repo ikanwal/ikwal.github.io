@@ -1,0 +1,75 @@
+{
+	"name": "Src_ConfigFile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_amperity",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ConfigFileDir": {
+				"type": "string"
+			},
+			"ConfigFileName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "OneTrust"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ConfigFileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().ConfigFileDir",
+					"type": "Expression"
+				},
+				"fileSystem": "master"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"ADLSInboundDir": {
+					"type": "string"
+				},
+				"ADLSErrorDir": {
+					"type": "string"
+				},
+				"ADLSArchDir": {
+					"type": "string"
+				},
+				"BLOBStageDir": {
+					"type": "string"
+				},
+				"InputFileName": {
+					"type": "string"
+				},
+				"EmailTo": {
+					"type": "string"
+				},
+				"FailEmailMessage1": {
+					"type": "string"
+				},
+				"FailEmailMessage2": {
+					"type": "string"
+				},
+				"FailEmailSubject": {
+					"type": "string"
+				},
+				"SuccessEmailMessage": {
+					"type": "string"
+				},
+				"SuccessEmailSubject": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,15 @@
+{
+	"name": "LS_gzfbkptelpd1sto001",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://gzfbkptelpd1sto001.blob.core.windows.net/"
+		},
+		"connectVia": {
+			"referenceName": "gzf-telbkp-pd1-air-001",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

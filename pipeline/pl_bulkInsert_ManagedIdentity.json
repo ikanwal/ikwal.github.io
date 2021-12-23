@@ -1,0 +1,632 @@
+{
+	"name": "pl_bulkInsert_ManagedIdentity",
+	"properties": {
+		"activities": [
+			{
+				"name": "DailyMix Get Year List",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SnowflakeSource",
+						"query": {
+							"value": "SELECT to_varchar(cast(STATDATE as date), 'yyyy') as apply_dt, 'DailyMix' as TableName \nFROM \"HI_DB\".\"DMS_MMV\".\"DAILYMIX\" group by to_varchar(cast(STATDATE as date), 'yyyy') order by to_varchar(cast(STATDATE as date), 'yyyy') desc ",
+							"type": "Expression"
+						},
+						"exportSettings": {
+							"type": "SnowflakeExportCopyCommand",
+							"additionalCopyOptions": {
+								"MAX_FILE_SIZE": "5368709120"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "whs_productivity_source",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Year-DailyMix",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "DailyMix Get Year List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('DailyMix Get Year List').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Copy DailyMix from CDW to Blob",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "WHS_PRODUCTIVITY.PRODUCTIVE_HOURS"
+								},
+								{
+									"name": "Destination",
+									"value": "ugurudev/@{item().tablename}/@{concat(item().tablename, '_', item().apply_dt, '.csv')}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "SnowflakeSource",
+									"query": {
+										"value": "Select top 10 PL, STATDATE, StatisticNM, StatisticActualCNT, StatisticBudgetCNT, FINANCIAL_CLASS_ID, FINANCIAL_CLASS_NAME, PAYER_ID, REPLACE(REPLACE(PAYER_NAME, char(10), ' '), char(13), ' ') as PAYER_NAME, PLAN_ID, PLAN_NAME, InsertDTS, IPOP\nfrom \"HI_DB\".\"DMS_MMV\".\"DAILYMIX\"\nwhere to_varchar(cast(STATDATE as date), 'yyyy') = '@{item().apply_dt}'\n\n\n",
+										"type": "Expression"
+									},
+									"exportSettings": {
+										"type": "SnowflakeExportCopyCommand",
+										"additionalCopyOptions": {
+											"OVERWRITE": "TRUE",
+											"MAX_FILE_SIZE": "5368709120"
+										}
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".csv"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "whs_productivity_source",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_blob_sink_wh",
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@concat(item().tablename, '_', item().apply_dt, '.csv')",
+											"type": "Expression"
+										},
+										"foldername": "VantageCDW"
+									}
+								}
+							]
+						},
+						{
+							"name": "Populate File Log Table",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy DailyMix from CDW to Blob",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_PopulateFileLog]",
+								"storedProcedureParameters": {
+									"filename": {
+										"value": {
+											"value": "@concat(item().tablename, '_', item().apply_dt, '.csv')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tablename": {
+										"value": {
+											"value": "@item().tablename",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_ugurudev_Source",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup table",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "ForEach Year-DailyMix",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "Select distinct tablename\n\tFrom dbo.ADFFileLog\n\tWhere IsProcessed = 'N' and Pipeline_RunId='@{pipeline().RunId}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_uGuruSource",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach DestTable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup table').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Vantage Stored Proc",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_PopulateToDBFullLoadwithMetrics]",
+								"storedProcedureParameters": {
+									"ExternalResource": {
+										"value": {
+											"value": "uGuruSourceVantageCDW",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelinename": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaname": {
+										"value": {
+											"value": "Vantage",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"spname": {
+										"value": {
+											"value": "usp_PopulateToDBFullLoadwithMetrics",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Fileformat": {
+										"value": "CSV",
+										"type": "String"
+									},
+									"percentoff": {
+										"value": "0.9",
+										"type": "Double"
+									},
+									"preloadschema": {
+										"value": "Preload",
+										"type": "String"
+									},
+									"tablename": {
+										"value": {
+											"value": "@item().tablename",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_ugurudev_Source",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "DailyStats Get Year List",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SnowflakeSource",
+						"query": {
+							"value": "SELECT to_varchar(cast(STATDATE as date), 'yyyy') as apply_dt, 'DailyStats' as TableName \nFROM \"HI_DB\".\"DMS_MMV\".\"DAILYSTATS\" \ngroup by to_varchar(cast(STATDATE as date), 'yyyy') \norder by to_varchar(cast(STATDATE as date), 'yyyy')",
+							"type": "Expression"
+						},
+						"exportSettings": {
+							"type": "SnowflakeExportCopyCommand",
+							"additionalCopyOptions": {
+								"MAX_FILE_SIZE": "5368709120"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "whs_productivity_source",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Year-DailyStats",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "DailyStats Get Year List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('DailyStats Get Year List').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Copy DailyStats from CDW to Blob",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "WHS_PRODUCTIVITY.PRODUCTIVE_HOURS"
+								},
+								{
+									"name": "Destination",
+									"value": "ugurudev/@{item().tablename}/@{concat(item().tablename, '_', item().apply_dt, '.csv')}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "SnowflakeSource",
+									"query": {
+										"value": "select top 10 PL,HSP_ACCOUNT_ID, STATDATE, StatisticNM, StatisticActualCNT, StatisticBudgetCNT, FINANCIAL_CLASS_ID, FINANCIAL_CLASS_NAME, PAYER_ID, PAYER_NAME, PLAN_ID, PLAN_NAME, InsertDTS\nfrom \"HI_DB\".\"DMS_MMV\".\"DAILYSTATS\"  \nwhere to_varchar(cast(STATDATE as date), 'yyyy') = '@{item().apply_dt}'\n\n\n",
+										"type": "Expression"
+									},
+									"exportSettings": {
+										"type": "SnowflakeExportCopyCommand",
+										"additionalCopyOptions": {
+											"OVERWRITE": "TRUE",
+											"MAX_FILE_SIZE": "5368709120"
+										}
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".csv"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "whs_productivity_source",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_blob_sink_wh",
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@concat(item().tablename, '_', item().apply_dt, '.csv')",
+											"type": "Expression"
+										},
+										"foldername": {
+											"value": "VantageCDW",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Populate File Log Table_copy1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy DailyStats from CDW to Blob",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_PopulateFileLog]",
+								"storedProcedureParameters": {
+									"filename": {
+										"value": {
+											"value": "@concat(item().tablename, '_', item().apply_dt, '.csv')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tablename": {
+										"value": {
+											"value": "@item().tablename",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_ugurudev_Source",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup table_copy1",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "ForEach Year-DailyStats",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "Select distinct tablename\n\tFrom dbo.ADFFileLog\n\tWhere IsProcessed = 'N' and Pipeline_RunId='@{pipeline().RunId}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_uGuruSource",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach DestTable_copy1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup table_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup table_copy1').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Vantage Stored Proc_copy1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_PopulateToDBFullLoadwithMetrics]",
+								"storedProcedureParameters": {
+									"ExternalResource": {
+										"value": {
+											"value": "uGuruSourceVantageCDW",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Pipeline_RunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelinename": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaname": {
+										"value": {
+											"value": "Vantage",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"spname": {
+										"value": {
+											"value": "usp_PopulateToDBFullLoadwithMetrics",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Fileformat": {
+										"value": "CSV",
+										"type": "String"
+									},
+									"percentoff": {
+										"value": "0.9",
+										"type": "Double"
+									},
+									"preloadschema": {
+										"value": "Preload",
+										"type": "String"
+									},
+									"tablename": {
+										"value": {
+											"value": "@item().tablename",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_ugurudev_Source",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "CDW to uGuruSource"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-18T15:40:41Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

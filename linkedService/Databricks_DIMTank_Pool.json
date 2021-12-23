@@ -1,0 +1,95 @@
+{
+	"name": "Databricks_DIMTank_Pool",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://eastus.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "dakv_ls",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "DLABS-DIM-DataBricksPAT"
+			},
+			"instancePoolId": "1002-190122-puffs948-pool-qh6XgrHJ",
+			"newClusterVersion": "8.3.x-scala2.12",
+			"newClusterNumOfWorker": "1:16",
+			"newClusterSparkConf": {
+				"spark.sql.autoBroadcastJoinThreshold": "-1",
+				"spark.databricks.delta.preview.enabled": "true",
+				"spark.driver.maxResultSize": "50g",
+				"spark.databricks.service.server.enabled": "true",
+				"spark.databricks.repl.allowedLanguages": "sql,python,scala",
+				"spark.speculation": "true",
+				"spark.cleaner.periodicGC.interval": "15min",
+				"spark.databricks.service.port": "8787"
+			},
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterCustomTags": {
+				"ADFPipelineName": {
+					"value": "@linkedService().ADFPipelineName",
+					"type": "Expression"
+				},
+				"ADFActivityName": {
+					"value": "@linkedService().ADFActivityName",
+					"type": "Expression"
+				},
+				"TableName": {
+					"value": "@linkedService().TableName",
+					"type": "Expression"
+				},
+				"OrchestrationPipeline": {
+					"value": "@linkedService().OrchestrationPipeline",
+					"type": "Expression"
+				},
+				"ADFPipelineRunId": {
+					"value": "@linkedService().ADFPipelineRunId",
+					"type": "Expression"
+				},
+				"ADFTriggerId": {
+					"value": "@linkedService().ADFTriggerId",
+					"type": "Expression"
+				}
+			},
+			"newClusterLogDestination": "dbfs:/mnt/dim/Landing/Databricks/ClusterLogs/",
+			"newClusterInitScripts": [
+				"dbfs:/databricks/init/install_dim_library.sh"
+			]
+		},
+		"connectVia": {
+			"referenceName": "NFCU-DLABS-EUS-DATAFACTORY-SHIR-2020",
+			"type": "IntegrationRuntimeReference"
+		},
+		"parameters": {
+			"ADFActivityName": {
+				"type": "String",
+				"defaultValue": "None"
+			},
+			"ADFPipelineName": {
+				"type": "String",
+				"defaultValue": "@pipeline().Pipeline"
+			},
+			"TableName": {
+				"type": "String",
+				"defaultValue": "None"
+			},
+			"OrchestrationPipeline": {
+				"type": "String",
+				"defaultValue": "None"
+			},
+			"ADFPipelineRunId": {
+				"type": "string",
+				"defaultValue": "@pipeline().RunId"
+			},
+			"ADFTriggerId": {
+				"type": "string",
+				"defaultValue": "@pipeline().TriggerId"
+			}
+		},
+		"annotations": []
+	}
+}

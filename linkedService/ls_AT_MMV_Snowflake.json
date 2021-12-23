@@ -1,0 +1,23 @@
+{
+	"name": "ls_AT_MMV_Snowflake",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "Snowflake",
+		"typeProperties": {
+			"connectionString": "jdbc:snowflake://psjh_prod.west-us-2.azure.snowflakecomputing.com/?user=CDW_SERV_IS_ADMINTECH&db=HI_DB&warehouse=AT_MMV_WH_M&role=IS_ADMINTECH_RO",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_mmv_dev",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "cdwserviceaccount"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ValueLensSelfHostedIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

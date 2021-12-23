@@ -1,0 +1,73 @@
+{
+	"name": "CDS_Clickstream_DataBackup",
+	"properties": {
+		"activities": [
+			{
+				"name": "ClickstreamDataBackup",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "CDS_Clickstream_DataSource",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "test1.txt"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CDS_Clickstream_DataSink",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": "@pipeline().parameters.fileName",
+							"folderName": "@pipeline().parameters.folderName"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"fileName": {
+				"type": "string"
+			},
+			"folderName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Clickstream"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-27T15:03:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

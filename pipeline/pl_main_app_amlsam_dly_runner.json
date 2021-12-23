@@ -1,0 +1,345 @@
+{
+	"name": "pl_main_app_amlsam_dly_runner",
+	"properties": {
+		"description": "This Pipeline is used to run all app Main Pipelines..",
+		"activities": [
+			{
+				"name": "pl_main_processed_daily_4",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_main_processed_daily_2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "pl_main_processed_daily_3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_main_processed_daily_4",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_main_processed_daily_3",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_main_processed_daily",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_main_processed_daily_3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_main_processed_daily_2",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_main_processed_daily",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_main_processed_daily_2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_main_processed_daily",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_update_batch_rundetails",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "plac_reset_ingestion_audit",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_main_processed_daily",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_main_provisioned_runner",
+				"description": "",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_main_processed_daily_4",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_main_provisioned_monthly_AG",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "plac_lookup_batch_run_status",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_lookup_BatchRunStatus]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_batchstatus",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_wait",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_batch_run_status",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 5
+				}
+			},
+			{
+				"name": "plac_update_batch_rundetails",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_batch_run_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Lookup_update_batchrundetails_running]",
+					"storedProcedureParameters": {
+						"data_as_of_date": {
+							"value": {
+								"value": "@activity('plac_lookup_batch_run_status').output.firstrow.data_as_of_date",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "plac_update_batchrundetails",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "pl_exectue_outputpipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Lookup_update_batchrundetails_completed]",
+					"storedProcedureParameters": {
+						"data_as_of_date": {
+							"value": {
+								"value": "@activity('plac_lookup_batch_run_status').output.firstrow.data_as_of_date",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "pl_exectue_outputpipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl__exectue_dqchecks",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_provision_to_ftp",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"business_date": {
+							"value": "@activity('plac_lookup_batch_run_status').output.firstrow.data_as_of_date",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl__exectue_dqchecks",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_main_provisioned_runner",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_dqchecks",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"BUSINESS_DATE": {
+							"value": "@activity('plac_lookup_batch_run_status').output.firstrow.data_as_of_date",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "plac_reset_ingestion_audit",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_batch_run_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+					"storedProcedureParameters": {
+						"action": {
+							"value": "reset_generic",
+							"type": "String"
+						},
+						"business_date": {
+							"value": {
+								"value": "@activity('plac_lookup_batch_run_status').output.firstrow.data_as_of_date",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"control_file_name": {
+							"type": "String"
+						},
+						"error_message": {
+							"type": "String"
+						},
+						"pipeline_id": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "AMLSAM_PROJECT/AMLSAM_MAIN_JOBS/AMLSAM_DAILY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

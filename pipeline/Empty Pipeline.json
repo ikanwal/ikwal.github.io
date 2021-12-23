@@ -1,0 +1,36 @@
+{
+	"name": "Empty Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForcedFail",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SetVariable",
+					"value": {
+						"value": "@{pipeline().parameters.sourcetable} Failed",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"sourcetable": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"SetVariable": {
+				"type": "Boolean"
+			}
+		},
+		"folder": {
+			"name": "Generic"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-07T18:42:23Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

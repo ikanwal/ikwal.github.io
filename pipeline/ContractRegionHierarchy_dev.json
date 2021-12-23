@@ -1,0 +1,230 @@
+{
+	"name": "ContractRegionHierarchy_dev",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"AbsoluteUrl": "$['@odata.nextLink']"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['description']"
+								},
+								"sink": {
+									"name": "description"
+								}
+							},
+							{
+								"source": {
+									"path": "['stationCode']"
+								},
+								"sink": {
+									"name": "value'][0]['stationCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['customerName']"
+								},
+								"sink": {
+									"name": "customerName"
+								}
+							},
+							{
+								"source": {
+									"path": "['regionName']"
+								},
+								"sink": {
+									"name": "regionName"
+								}
+							},
+							{
+								"source": {
+									"path": "['organizationName']"
+								},
+								"sink": {
+									"name": "organizationName"
+								}
+							},
+							{
+								"source": {
+									"path": "['contractCode']"
+								},
+								"sink": {
+									"name": "contractCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['employeeNumber']"
+								},
+								"sink": {
+									"name": "employeeNumber"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['givenName']"
+								},
+								"sink": {
+									"name": "givenName"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['familyName']"
+								},
+								"sink": {
+									"name": "familyName"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['jobTitle']"
+								},
+								"sink": {
+									"name": "jobTitle"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['primaryEmailAddress']"
+								},
+								"sink": {
+									"name": "primaryEmailAddress"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['graphObjectId']"
+								},
+								"sink": {
+									"name": "graphObjectId"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['userPrincipalName']"
+								},
+								"sink": {
+									"name": "userPrincipalName"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['positionCode']"
+								},
+								"sink": {
+									"name": "positionCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['stationCode']"
+								},
+								"sink": {
+									"name": "value'][0]['leadership'][0]['stationCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['divisionCode']"
+								},
+								"sink": {
+									"name": "divisionCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['leadership'][0]['role']"
+								},
+								"sink": {
+									"name": "role"
+								}
+							},
+							{
+								"source": {
+									"path": "$['skipToken']"
+								},
+								"sink": {
+									"name": "skipToken"
+								}
+							},
+							{
+								"source": {
+									"path": "$['count']"
+								},
+								"sink": {
+									"name": "count"
+								}
+							},
+							{
+								"source": {
+									"path": "$['@odata.nextLink']"
+								},
+								"sink": {
+									"name": "@@odata.nextLink"
+								}
+							}
+						],
+						"collectionReference": "$['value']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "api_Pulse_prod",
+						"type": "DatasetReference",
+						"parameters": {
+							"RelativeUrl": "/api/v1/contracts?$expand=leadership"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "csv_pulse_test",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "PulseSubmissions"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-10T02:28:12Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

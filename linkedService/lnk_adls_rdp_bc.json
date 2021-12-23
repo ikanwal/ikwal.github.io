@@ -1,0 +1,23 @@
+{
+	"name": "lnk_adls_rdp_bc",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureDataLakeStore",
+		"typeProperties": {
+			"dataLakeStoreUri": "adl://prdszendsadlsrdpacqnbc.azuredatalakestore.net",
+			"servicePrincipalId": "693af348-3c5d-42a9-abb5-8f0db2ff3a97",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lnk_kv_rdp_bc",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "prd-acq-szen-ada-0093-ENP0154-rdp-bc-adls-key"
+			},
+			"tenant": "bd3eeefe-e2f5-40d6-abc6-bbb9c8f48d03",
+			"subscriptionId": "1b0429f6-9a73-4d82-b706-239f759b9b1e",
+			"resourceGroupName": "MAHSBC-RGP-0093-ENP0154-RTL_RETAIL_DATA_PLATFORM_BC_PROD"
+		},
+		"annotations": []
+	}
+}

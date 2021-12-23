@@ -1,0 +1,24 @@
+{
+	"name": "Hive1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Hive",
+		"typeProperties": {
+			"host": "fdf",
+			"port": 443,
+			"serverType": "HiveServer1",
+			"thriftTransportProtocol": "SASL",
+			"authenticationType": "Username",
+			"serviceDiscoveryMode": false,
+			"useNativeQuery": false,
+			"username": "ff",
+			"enableSsl": false,
+			"storageReference": {
+				"referenceName": "AzureBlobStorage1",
+				"type": "LinkedServiceReference"
+			},
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIklSQUpLQU5XQUxfYWY0Y2IyM2ItMjAzZi00NjlkLTg2ZmEtYjg1MjQzYzIzOWZiIg0KfQ=="
+		}
+	}
+}

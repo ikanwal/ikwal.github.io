@@ -1,0 +1,40 @@
+{
+	"name": "DremioCatalogDetailsREST",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DremioCatalogDetailsREST",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"space": {
+				"type": "string"
+			},
+			"dremioFacadeServiceEndpoint": {
+				"type": "string",
+				"defaultValue": "https://dremio-service-qa.pwclabs.pwcglb.com/api/v1/"
+			},
+			"dremioInstanceName": {
+				"type": "string",
+				"defaultValue": "qa-dremio-instance001.pwclabs.pwcglb.com"
+			},
+			"dremioUserPwdSecretName": {
+				"type": "string",
+				"defaultValue": "us-adv-dremio-s001-pwd"
+			},
+			"dremioUserName": {
+				"type": "string",
+				"defaultValue": "US_adv_Dremio_s001"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@concat('catalog/by-path?host=',dataset().dremioInstanceName,'&path=',dataset().space)",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

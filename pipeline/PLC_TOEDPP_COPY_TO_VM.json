@@ -1,0 +1,314 @@
+{
+	"name": "PLC_TOEDPP_COPY_TO_VM",
+	"properties": {
+		"activities": [
+			{
+				"name": "CreateZIP",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"maxConcurrentConnections": 50,
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)}",
+								"type": "Expression"
+							},
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"maxConcurrentConnections": 50,
+							"blockSizeInMB": 90
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_TOEDPP_SRC_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)}",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_TOEDPP_SNK_ADLS_ZIP",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							},
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/zip')}",
+								"type": "Expression"
+							},
+							"File": {
+								"value": "@concat('infr_',pipeline().parameters.usecase,'_',pipeline().parameters.folder_yyyymmdd,'_',formatDateTime(utcnow(),'yyyyMMddTHHmmss'),'.zip')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "DeleteTempUsecaseFolder",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "CopyToProcessed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_TOEDPP_SRC_DELETE_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)}",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "CopyToProcessed",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "CopyToVM",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"maxConcurrentConnections": 50,
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/zip')}",
+								"type": "Expression"
+							},
+							"wildcardFileName": {
+								"value": "@{concat('infr_',pipeline().parameters.usecase,'_',pipeline().parameters.folder_yyyymmdd,'_*.zip')}",
+								"type": "Expression"
+							},
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"maxConcurrentConnections": 80,
+							"blockSizeInMB": 90
+						}
+					},
+					"enableStaging": false,
+					"skipErrorFile": {
+						"fileMissing": false
+					},
+					"validateDataConsistency": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_TOEDPP_SRC_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/zip')}",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_TOEDPP_SNK_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/porcessed/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)}",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "CopyToVM",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "CreateZIP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"maxConcurrentConnections": 90,
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/zip')}",
+								"type": "Expression"
+							},
+							"wildcardFileName": {
+								"value": "@{concat('infr_',pipeline().parameters.usecase,'_',pipeline().parameters.folder_yyyymmdd,'_*.zip')}",
+								"type": "Expression"
+							},
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"maxConcurrentConnections": 90,
+							"operationTimeout": "03:00:00",
+							"useTempFileRename": true
+						}
+					},
+					"enableStaging": false,
+					"skipErrorFile": {
+						"fileMissing": false
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_TOEDPP_SRC_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/zip')}",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_TOEDPP_BINR_STGVM",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@pipeline().parameters.stagingvm_path",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"usecase": {
+				"type": "string"
+			},
+			"folder_yyyymmdd": {
+				"type": "string"
+			},
+			"adls_root_folder": {
+				"type": "string"
+			},
+			"stagingvm_path": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "TOEDPPP/Common"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-14T01:36:40Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

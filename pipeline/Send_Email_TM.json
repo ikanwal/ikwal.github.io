@@ -1,0 +1,54 @@
+{
+	"name": "Send_Email_TM",
+	"properties": {
+		"activities": [
+			{
+				"name": "Send Email",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-124.westus.logic.azure.com:443/workflows/83d6b4a776234ed9ba49aa0ea0fdf3e0/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=LJqCXAsCljvEahc-eJ3n5eGp7JK4lu_-gNxAHkeCQ0s",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"Message": "@{pipeline().parameters.Message}",
+						"dataFactoryName": "@{pipeline().DataFactory}",
+						"pipelineName": "@{pipeline().Pipeline}",
+						"EmailTo": "@{pipeline().parameters.EmailTo}",
+						"Subject": "@{pipeline().parameters.Subject}"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"EmailTo": {
+				"type": "string"
+			},
+			"Message": {
+				"type": "string"
+			},
+			"Subject": {
+				"type": "string"
+			},
+			"Activity": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Amperity/TicketMaster"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-30T19:40:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

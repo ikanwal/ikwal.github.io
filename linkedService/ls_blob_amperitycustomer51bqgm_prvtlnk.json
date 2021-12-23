@@ -1,0 +1,17 @@
+{
+	"name": "ls_blob_amperitycustomer51bqgm_prvtlnk",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"sasUri": "https://amperitycustomer51bqgm.blob.core.windows.net/",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4OTk3NDU3MC05YzIzLTQ0YjItODQ4Yy1kMjRkODhiMWM4MTIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "imdevIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": " ",
+		"annotations": []
+	}
+}

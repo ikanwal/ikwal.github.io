@@ -1,0 +1,12 @@
+{
+	"name": "CDS_CR_ADLS2",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://gsta2pzrscdscr01.dfs.core.windows.net"
+		},
+		"description": "CDS Customer Resolution SA (gsta2pzrscdscr01) access to ADF",
+		"annotations": []
+	}
+}

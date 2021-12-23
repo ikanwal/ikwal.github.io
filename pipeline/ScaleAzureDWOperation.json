@@ -1,0 +1,511 @@
+{
+	"name": "ScaleAzureDWOperation",
+	"properties": {
+		"description": "This is to Change i.e. Scale up/down Azure SQL Datawarehouse.",
+		"activities": [
+			{
+				"name": "ProcessBatchInitiate",
+				"description": "Process Batch Initiate will register the pipeline run in the CDM Framework. As an output it gives process_batch_key to be utilized in the Pipeline workflow.",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[cdm].[process_batch_initiate_internal]",
+						"storedProcedureParameters": {
+							"channel": {
+								"type": "String"
+							},
+							"comments": {
+								"type": "String"
+							},
+							"limit_process_uid": {
+								"type": "String"
+							},
+							"process_uid": {
+								"type": "String",
+								"value": {
+									"value": "@CONCAT(pipeline().parameters.ProjectName, '::',pipeline().Pipeline)",
+									"type": "Expression"
+								}
+							},
+							"workflow_guid": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							},
+							"workflow_name": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								}
+							},
+							"workflow_version": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.PipelineVersionID",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "LoggerDatabase",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "SetProcessBatchKey",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ProcessBatchInitiate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ProcessBatchKey",
+					"value": {
+						"value": "@string(activity('ProcessBatchInitiate').output.firstrow.process_batch_key)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "cdmProcessBatchError",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ScaleDatabase",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('ScaleDatabase').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('ScaleDatabase').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ScaleDatabase",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "setServiceObjective",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "DECLARE @iDatabaseName\tVARCHAR(50) , @iServiceObjective\tVARCHAR(10);\n\nSET @iDatabaseName\t\t\t= @{variables('DatabaseName')}\nSET @iServiceObjective\t= @{variables('ServiceObjective')}\n\nDECLARE  @vStatus VARCHAR(50)\n        ,@vDynamicSQL VARCHAR(1000);\n\nIF EXISTS (\tSELECT 1 \n\t\t\t\t\t\tFROM\tsys.database_service_objectives ds\n\t\t\t\t\t\t\tINNER JOIN sys.databases db ON ds.database_id = db.database_id\n\t\t\t\t\t\tWHERE\tdb.name = @iDatabaseName AND \t\n\t\t\t\t\t\t\t\t\tds.service_objective = @iServiceObjective\n\t\t\t\t\t)\n\tBEGIN\n\tSELECT @vStatus ='Service objective is same. No Operation to be performed.'\n\tEND\nELSE\nIF EXISTS (SELECT 1 FROM sys.dm_operation_status WHERE resource_type_desc = 'Database'\n\t\t\t\t\t\tAND major_resource_id = @iDatabaseName AND state_desc='IN_PROGRESS'\n          )\n\tBEGIN\n\t\t\t-- Retrun Status of the job\n\t\t\tSELECT @vStatus ='Scaling Operation already in progress'\n\tEND\nELSE\n\tBEGIN\n\t\tSELECT\t@vDynamicSQL= 'ALTER DATABASE ' + @iDatabaseName + ' MODIFY (SERVICE_OBJECTIVE = ''' + @iServiceObjective + ''');';\n\t\tSELECT @vStatus ='Starting Scaling Operation';\n\t\tEXEC (@vDynamicSQL);\n\n\t\tSET @vStatus = (SELECT TOP 1 state_desc\n\t\t\tFROM sys.dm_operation_status\n\t\t\tWHERE \n\t\t\t1=1\n\t\t\tAND resource_type_desc = 'Database'\n\t\t\tAND major_resource_id = @iDatabaseName\n\t\t\tAND operation = 'ALTER DATABASE'\n\t\t\tORDER BY\n\t\t\tstart_time DESC);\n        WHILE \n\t\t\t@vStatus='IN_PROGRESS'\t\t\n\t\tBEGIN\n\t\t\tRAISERROR('Scale operation in progress',0,0) WITH NOWAIT;\n\t\t\tWAITFOR DELAY '00:00:15';\n\t\t\tSET @vStatus = (SELECT TOP 1 state_desc\n\t\t\tFROM sys.dm_operation_status\n\t\t\tWHERE \n\t\t\t1=1\n\t\t\tAND resource_type_desc = 'Database'\n\t\t\tAND major_resource_id = @iDatabaseName\n\t\t\tAND operation = 'ALTER DATABASE'\n\t\t\tORDER BY\n\t\t\tstart_time DESC)\n\t\tEND\n\t\t-- Retrun Status of the job\n\t\t--SELECT @vStatus ='Scaling Operation Complete';\n\tEND\nSELECT @vStatus AS OperationStatus;",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Master",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "setDatabaseName",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "SetProcessBatchKey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "DatabaseName",
+					"value": {
+						"value": "@concat('''',pipeline().parameters.ScaleSQLDWDatabaseName,'''')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "setServiceObjective",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "setDatabaseName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ServiceObjective",
+					"value": {
+						"value": "@concat('''',pipeline().parameters.ServiceObjective,'''')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "OperationStatus",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ScaleDatabase",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "OperationStatus",
+					"value": {
+						"value": "@string(activity('ScaleDatabase').output.firstRow)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "cdmProcessBatchOperationStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "OperationStatus",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('OperationStatus').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('OperationStatus').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ValidateDWAccess",
+				"type": "Validation",
+				"dependsOn": [
+					{
+						"activity": "WaitFor60Seconds",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "EASDW_ActiveStatus",
+						"type": "DatasetReference"
+					},
+					"timeout": "0.00:01:30",
+					"sleep": 10
+				}
+			},
+			{
+				"name": "cdmProcessBatchValidationError",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ValidateDWAccess",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('ValidateDWAccess').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('ValidateDWAccess').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ProcessBatchConclude",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ValidateDWAccess",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchConclude",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"process_batch_key": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"source_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"inserted_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"updated_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"deleted_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"completed_ind": 1,
+						"unprocessed_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "WaitFor60Seconds",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "OperationStatus",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 60
+				}
+			},
+			{
+				"name": "ScaleDownDatabaseOnFailure",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "setServiceObjectiveToLow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "DECLARE @iDatabaseName\tVARCHAR(50) , @iServiceObjective\tVARCHAR(10);\n\nSET @iDatabaseName\t\t\t= @{variables('DatabaseName')}\nSET @iServiceObjective\t= @{variables('ServiceObjective')}\n\nDECLARE  @vStatus VARCHAR(50)\n        ,@vDynamicSQL VARCHAR(1000);\n\nIF EXISTS (\tSELECT 1 \n\t\t\t\t\t\tFROM\tsys.database_service_objectives ds\n\t\t\t\t\t\t\tINNER JOIN sys.databases db ON ds.database_id = db.database_id\n\t\t\t\t\t\tWHERE\tdb.name = @iDatabaseName AND \t\n\t\t\t\t\t\t\t\t\tds.service_objective = @iServiceObjective\n\t\t\t\t\t)\n\tBEGIN\n\tSELECT @vStatus ='Service objective is same. No Operation to be performed.'\n\tEND\nELSE\nIF EXISTS (SELECT 1 FROM sys.dm_operation_status WHERE resource_type_desc = 'Database'\n\t\t\t\t\t\tAND major_resource_id = @iDatabaseName AND state_desc='IN_PROGRESS'\n          )\n\tBEGIN\n\t\t\t-- Retrun Status of the job\n\t\t\tSELECT @vStatus ='Scaling Operation already in progress'\n\tEND\nELSE\n\tBEGIN\n\t\tSELECT\t@vDynamicSQL= 'ALTER DATABASE ' + @iDatabaseName + ' MODIFY (SERVICE_OBJECTIVE = ''' + @iServiceObjective + ''');';\n\t\tSELECT @vStatus ='Starting Scaling Operation';\n\t\tEXEC (@vDynamicSQL);\n\n\t\tSET @vStatus = (SELECT TOP 1 state_desc\n\t\t\tFROM sys.dm_operation_status\n\t\t\tWHERE \n\t\t\t1=1\n\t\t\tAND resource_type_desc = 'Database'\n\t\t\tAND major_resource_id = @iDatabaseName\n\t\t\tAND operation = 'ALTER DATABASE'\n\t\t\tORDER BY\n\t\t\tstart_time DESC);\n        WHILE \n\t\t\t@vStatus='IN_PROGRESS'\t\t\n\t\tBEGIN\n\t\t\tRAISERROR('Scale operation in progress',0,0) WITH NOWAIT;\n\t\t\tWAITFOR DELAY '00:00:15';\n\t\t\tSET @vStatus = (SELECT TOP 1 state_desc\n\t\t\tFROM sys.dm_operation_status\n\t\t\tWHERE \n\t\t\t1=1\n\t\t\tAND resource_type_desc = 'Database'\n\t\t\tAND major_resource_id = @iDatabaseName\n\t\t\tAND operation = 'ALTER DATABASE'\n\t\t\tORDER BY\n\t\t\tstart_time DESC)\n\t\tEND\n\t\t-- Retrun Status of the job\n\t\t--SELECT @vStatus ='Scaling Operation Complete';\n\tEND\nSELECT @vStatus AS OperationStatus;",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Master",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "setServiceObjectiveToLow",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ValidateDWAccess",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ServiceObjective",
+					"value": "DW100C"
+				}
+			},
+			{
+				"name": "cdmProcessBatchScaleDownError",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ScaleDownDatabaseOnFailure",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('ScaleDownDatabaseOnFailure').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('ScaleDownDatabaseOnFailure').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ProjectName": {
+				"type": "string",
+				"defaultValue": "Operations"
+			},
+			"PipelineVersionID": {
+				"type": "string",
+				"defaultValue": "1.0"
+			},
+			"ScaleSQLDWDatabaseName": {
+				"type": "string",
+				"defaultValue": "ROProductionDW"
+			},
+			"ServiceObjective": {
+				"type": "string",
+				"defaultValue": "DW100C"
+			}
+		},
+		"variables": {
+			"ProcessBatchKey": {
+				"type": "String"
+			},
+			"DatabaseName": {
+				"type": "String"
+			},
+			"ServiceObjective": {
+				"type": "String"
+			},
+			"OperationStatus": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Orchestration"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-11T21:21:41Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

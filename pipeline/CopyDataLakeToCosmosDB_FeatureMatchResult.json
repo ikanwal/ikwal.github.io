@@ -1,0 +1,63 @@
+{
+	"name": "CopyDataLakeToCosmosDB_FeatureMatchResult",
+	"properties": {
+		"description": "Cosmos DB spike data load",
+		"activities": [
+			{
+				"name": "CopyDataLakeToCosmodDB_FMResult",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureDatabricksDeltaLakeSource",
+						"query": "select * from awbfmpoc.FeatureMatchResult Where ReferenceNormalizedReportIssueKey not in (\"L0001-QU-CM-GE-USWM+-20170822-1-L0001-QU-CM-202101282310\", \"L0004-CM-SP-BHGE-MFL3-20190220-1-L0004-CM-SP-202101282310\")",
+						"exportSettings": {
+							"type": "AzureDatabricksDeltaLakeExportCommand"
+						}
+					},
+					"sink": {
+						"type": "CosmosDbSqlApiSink",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "BlobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "workbench/stage/cosmosDB/fmResult",
+						"enableCompression": true
+					},
+					"parallelCopies": 4,
+					"enableSkipIncompatibleRow": false
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureDatabricksDeltaLake_Correlation",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CosmosDbSqlFeatureMatchResult",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "POCCosmosDB"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-03T13:52:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,41 @@
+{
+	"name": "LS_PWR_SQL_WinAuth_DYNAMIC",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=True;Data Source=@{linkedService().p_servername};Initial Catalog=@{linkedService().p_dbname}",
+			"userName": "@{linkedService().p_username}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_KVLT_ZNEUDL1P40INGing_kvl00",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().p_secretname",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "ADF-P40-ING-HA-IR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"parameters": {
+			"p_servername": {
+				"type": "string"
+			},
+			"p_dbname": {
+				"type": "string"
+			},
+			"p_username": {
+				"type": "string"
+			},
+			"p_secretname": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}

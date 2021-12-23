@@ -1,0 +1,27 @@
+{
+	"name": "BDL_US_PROD_GEN2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "US_PROD_GEN2_AP_BDL",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"desPath": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().desPath",
+					"type": "Expression"
+				},
+				"fileSystem": "ap-buy-datalake"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

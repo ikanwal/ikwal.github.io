@@ -1,0 +1,27 @@
+{
+	"name": "LS_EC_PA",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "CommonDataServiceForApps",
+		"typeProperties": {
+			"deploymentType": "Online",
+			"serviceUri": "https://ecpadev.api.crm.dynamics.com/",
+			"authenticationType": "Office365",
+			"username": "srvECT_Azure_PA_DEV@fmr.com",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "EC_Vault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "PWRAPPS-SRV"
+			}
+		},
+		"connectVia": {
+			"referenceName": "IR-AZURE-VM",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "Employee Compliance CDS",
+		"annotations": []
+	}
+}

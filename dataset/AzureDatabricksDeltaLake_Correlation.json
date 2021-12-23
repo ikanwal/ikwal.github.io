@@ -1,0 +1,20 @@
+{
+	"name": "AzureDatabricksDeltaLake_Correlation",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDatabricksDeltaLake",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "FeatureMatch"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "awbfmpoc",
+			"table": "featurematchresult"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

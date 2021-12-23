@@ -1,0 +1,47 @@
+{
+	"name": "ScheduleChanges_RawToProd",
+	"properties": {
+		"folder": {
+			"name": "ScheduleChangeDFs"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "csnte_adls_pii_schedchg_raw",
+						"type": "DatasetReference"
+					},
+					"name": "scheduleChangesRaw"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "Prod_ADLS",
+						"type": "LinkedServiceReference"
+					},
+					"name": "scheduleChangeSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "dcompCreateDate"
+				},
+				{
+					"name": "SelectRenamePII"
+				},
+				{
+					"name": "OrderByLastUpdated"
+				},
+				{
+					"name": "RemoveDuplicateProcessIDs"
+				},
+				{
+					"name": "AlterSchedChgRow"
+				}
+			],
+			"script": "source(output(\n\t\teventSource as string,\n\t\trequestingOrganization as string,\n\t\trequestingSystem as string,\n\t\tProcessID as string,\n\t\tisSeatChange as string,\n\t\tOutcome as string,\n\t\tDescription as string,\n\t\tCorrelationId as string,\n\t\tcreateDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> scheduleChangesRaw\nRemoveDuplicateProcessIDs derive(yearCreated = toString(createDate, 'yyyy'),\n\t\tlastUpdated = createDate,\n\t\teventSourceUC = upper(eventSource),\n\t\trequestingOrganizationUC = upper(requestingOrganization),\n\t\trequestingSystemUC = upper(requestingSystem),\n\t\tOutcomeUC = upper(Outcome),\n\t\tDescriptionUC = upper(Description),\n\t\tCorrelationIdUC = upper(CorrelationId)) ~> dcompCreateDate\ndcompCreateDate select(mapColumn(\n\t\teventSource = eventSourceUC,\n\t\trequestingOrganization = requestingOrganizationUC,\n\t\trequestingSystem = requestingSystemUC,\n\t\tprocessId = ProcessID,\n\t\tisSeatChange,\n\t\toutcome = OutcomeUC,\n\t\tdescription = DescriptionUC,\n\t\tcorrelationId = CorrelationIdUC,\n\t\tcreateDate,\n\t\tlastUpdated,\n\t\tyearCreated\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectRenamePII\nSelectRenamePII sort(asc(processId, true),\n\tasc(lastUpdated, true)) ~> OrderByLastUpdated\nscheduleChangesRaw aggregate(groupBy(ProcessID),\n\teach(match(name!='ProcessID'), $$ = last($$))) ~> RemoveDuplicateProcessIDs\nOrderByLastUpdated alterRow(insertIf(true())) ~> AlterSchedChgRow\nAlterSchedChgRow sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delta',\n\tfileSystem: 'csnte-pii',\n\tfolderPath: 'prod-pii/schedulechanges',\n\tmergeSchema: false,\n\tautoCompact: false,\n\toptimizedWrite: false,\n\tvacuum: 0,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['processId'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('key',\n\t\t0,\n\t\tyearCreated\n\t)) ~> scheduleChangeSink"
+		}
+	}
+}

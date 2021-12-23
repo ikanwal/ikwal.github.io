@@ -1,0 +1,258 @@
+{
+	"name": "dsSQLMI_generic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLMIConn",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"StagingTable": {
+				"type": "string",
+				"defaultValue": "notset"
+			},
+			"StagingSchema": {
+				"type": "string",
+				"defaultValue": "cth_stz"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlMITable",
+		"schema": [
+			{
+				"name": "customer_id",
+				"type": "nvarchar"
+			},
+			{
+				"name": "identity_code",
+				"type": "varchar"
+			},
+			{
+				"name": "seq",
+				"type": "nvarchar"
+			},
+			{
+				"name": "blank",
+				"type": "nvarchar"
+			},
+			{
+				"name": "first_surname",
+				"type": "varchar"
+			},
+			{
+				"name": "first_name",
+				"type": "varchar"
+			},
+			{
+				"name": "sex",
+				"type": "varchar"
+			},
+			{
+				"name": "civil_status",
+				"type": "varchar"
+			},
+			{
+				"name": "address_type1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "zone1",
+				"type": "varchar"
+			},
+			{
+				"name": "city1",
+				"type": "varchar"
+			},
+			{
+				"name": "use_this1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "address_type2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "zone2",
+				"type": "varchar"
+			},
+			{
+				"name": "city2",
+				"type": "varchar"
+			},
+			{
+				"name": "use_this2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "telephone_type1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "addr_tel_type1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "telephone_type2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "addr_tel_type2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "income_payment_type",
+				"type": "nvarchar"
+			},
+			{
+				"name": "income_payment_day",
+				"type": "nvarchar"
+			},
+			{
+				"name": "reviewed",
+				"type": "nvarchar"
+			},
+			{
+				"name": "company",
+				"type": "varchar"
+			},
+			{
+				"name": "second_surname",
+				"type": "varchar"
+			},
+			{
+				"name": "middle_name",
+				"type": "varchar"
+			},
+			{
+				"name": "birth_date",
+				"type": "nvarchar"
+			},
+			{
+				"name": "address_number1",
+				"type": "varchar"
+			},
+			{
+				"name": "province1",
+				"type": "varchar"
+			},
+			{
+				"name": "country1",
+				"type": "varchar"
+			},
+			{
+				"name": "po_box1",
+				"type": "varchar"
+			},
+			{
+				"name": "strata1",
+				"type": "varchar"
+			},
+			{
+				"name": "address_number2",
+				"type": "varchar"
+			},
+			{
+				"name": "province2",
+				"type": "varchar"
+			},
+			{
+				"name": "country2",
+				"type": "varchar"
+			},
+			{
+				"name": "po_box2",
+				"type": "varchar"
+			},
+			{
+				"name": "strata2",
+				"type": "varchar"
+			},
+			{
+				"name": "area_code1",
+				"type": "varchar"
+			},
+			{
+				"name": "telephone_number1",
+				"type": "varchar"
+			},
+			{
+				"name": "extention1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "country_code1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "area_code2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "telephone_number2",
+				"type": "varchar"
+			},
+			{
+				"name": "extention2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "country_code2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ocupation",
+				"type": "varchar"
+			},
+			{
+				"name": "profession",
+				"type": "varchar"
+			},
+			{
+				"name": "income",
+				"type": "nvarchar"
+			},
+			{
+				"name": "persons_in_charge",
+				"type": "nvarchar"
+			},
+			{
+				"name": "work_timetable_start",
+				"type": "nvarchar"
+			},
+			{
+				"name": "work_timetable_end",
+				"type": "nvarchar"
+			},
+			{
+				"name": "user_defined1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "return_id",
+				"type": "nvarchar"
+			},
+			{
+				"name": "qualification",
+				"type": "nvarchar"
+			},
+			{
+				"name": "territorio",
+				"type": "nvarchar"
+			},
+			{
+				"name": "data_date",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().StagingSchema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().StagingTable",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

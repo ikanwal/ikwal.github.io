@@ -1,0 +1,41 @@
+{
+	"name": "PROD_DELTA_LIST_HDFS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AP_PROD",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FilePath": {
+				"type": "string"
+			},
+			"DeleteFolderListFIleName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HdfsLocation",
+				"fileName": {
+					"value": "@dataset().DeleteFolderListFIleName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().FilePath",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

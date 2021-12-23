@@ -1,0 +1,369 @@
+{
+	"name": "pl_execute_job_generic",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_lookup_source_validation_details",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_SourceValidationDetails]",
+						"storedProcedureParameters": {
+							"input_job_id": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.job_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_asql_amlsam",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "plac_foreach_validate_source_availability",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_source_validation_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('plac_lookup_source_validation_details').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "plac_if_valid_date_flag",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().valid_date_flag,'Y')",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "plac_execpl_validate_source_any_date",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "pl_validate_source_any_date",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"filesystem": {
+													"value": "@item().valid_filesystem",
+													"type": "Expression"
+												},
+												"project": {
+													"value": "@item().valid_project",
+													"type": "Expression"
+												},
+												"table_name": {
+													"value": "@item().valid_table_name",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "plac_execpl_validate_sourc_specific_date",
+										"type": "ExecutePipeline",
+										"dependsOn": [
+											{
+												"activity": "plac_lookup_specific_date",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "pl_validate_source_specific_date",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"filesystem": {
+													"value": "@item().valid_filesystem",
+													"type": "Expression"
+												},
+												"project": {
+													"value": "@item().valid_project",
+													"type": "Expression"
+												},
+												"table_name": {
+													"value": "@item().valid_table_name",
+													"type": "Expression"
+												},
+												"partition_date": {
+													"value": "@{activity('plac_lookup_specific_date').output.firstRow.lookup_date}",
+													"type": "Expression"
+												}
+											}
+										}
+									},
+									{
+										"name": "plac_lookup_specific_date",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.00:10:00",
+											"retry": 1,
+											"retryIntervalInSeconds": 60,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_SpecificDate_amlsam]",
+												"storedProcedureParameters": {
+													"partition_date": {
+														"type": "String",
+														"value": {
+															"value": "@item().valid_date",
+															"type": "Expression"
+														}
+													}
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "ds_asql_amlsam",
+												"type": "DatasetReference"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "plac_execpl_execute_databricks_notebook",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "plac_foreach_validate_source_availability",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "plac_lookup_job_details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_execute_databricks_notebook",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"notebook_path": {
+							"value": "@{activity('plac_lookup_job_details').output.firstRow.databricks_notebook_path}",
+							"type": "Expression"
+						},
+						"job_id": {
+							"value": "@pipeline().parameters.job_id",
+							"type": "Expression"
+						},
+						"Cluster_id": {
+							"value": "@{activity('plac_lookup_job_details').output.firstRow.dbr_cluster_id}",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "plac_lookup_job_details",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_JobDetails]",
+						"storedProcedureParameters": {
+							"job_id": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.job_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_asql_amlsam",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "plac_update_ingestion_audit_validation__failure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "plac_execpl_execute_databricks_notebook",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+					"storedProcedureParameters": {
+						"action": {
+							"value": "failed",
+							"type": "String"
+						},
+						"business_date": {
+							"type": "String"
+						},
+						"control_file_name": {
+							"value": {
+								"value": "@pipeline().parameters.job_id",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"error_message": {
+							"value": {
+								"value": "@{activity('plac_execpl_execute_databricks_notebook').error.message}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipeline_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "plac_update_ingestion_audit_validation1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "plac_execpl_execute_databricks_notebook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+					"storedProcedureParameters": {
+						"action": {
+							"value": "Success",
+							"type": "String"
+						},
+						"business_date": {
+							"type": "String"
+						},
+						"control_file_name": {
+							"value": {
+								"value": "@pipeline().parameters.job_id",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"error_message": {
+							"type": "String"
+						},
+						"pipeline_id": {
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"job_id": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/GENERIC_PIPELINES/EXECUTE_DATABRICKS_JOB/LAYER_2"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:26Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

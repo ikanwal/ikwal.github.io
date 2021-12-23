@@ -1,0 +1,26 @@
+{
+	"name": "USPROD_ONPERM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AP_PROD",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sourcePath": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "HdfsLocation",
+				"folderPath": {
+					"value": "@dataset().sourcePath",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

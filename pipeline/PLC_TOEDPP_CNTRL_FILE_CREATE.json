@@ -1,0 +1,199 @@
+{
+	"name": "PLC_TOEDPP_CNTRL_FILE_CREATE",
+	"properties": {
+		"activities": [
+			{
+				"name": "ControleFileCreate",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.04:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@concat(pipeline().globalParameters.adb_ntbk_base_path,'/inference/InferenceControlFileCreate')",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"usecase": {
+							"value": "@pipeline().parameters.usecase",
+							"type": "Expression"
+						},
+						"day_yyyymmdd": {
+							"value": "@pipeline().parameters.folder_yyyymmdd",
+							"type": "Expression"
+						},
+						"file_system": {
+							"value": "@pipeline().globalParameters.adls_raw_container",
+							"type": "Expression"
+						},
+						"root_folder": {
+							"value": "@pipeline().parameters.adls_root_folder",
+							"type": "Expression"
+						},
+						"storage_account": {
+							"value": "@pipeline().globalParameters.eim_raw_storage_acct_name",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_Service",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "DeleteTempControlFolder",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "RenameControlFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_TOEDPP_SRC_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/ControlFile')",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "RenameControlFile",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ControleFileCreate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.02:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"maxConcurrentConnections": 82,
+							"recursive": false,
+							"wildcardFolderPath": {
+								"value": "@concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd,'/ControlFile')",
+								"type": "Expression"
+							},
+							"wildcardFileName": "part-*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"maxConcurrentConnections": 80,
+							"copyBehavior": "MergeFiles",
+							"blockSizeInMB": 80
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_TOEDPP_SRC_ADLS_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_TOEDPP_SNK_ADLS_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@concat(pipeline().parameters.control_file_name)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"usecase": {
+				"type": "string"
+			},
+			"folder_yyyymmdd": {
+				"type": "string"
+			},
+			"adls_root_folder": {
+				"type": "string"
+			},
+			"control_file_name": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "TOEDPPP/Common"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-14T01:36:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

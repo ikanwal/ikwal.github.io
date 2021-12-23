@@ -1,0 +1,24 @@
+{
+	"name": "api_Pulse_prod",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "api_pulse_prod",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"RelativeUrl": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "PulseSubmissions"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": "/api/v1/contracts?$expand=leadership"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

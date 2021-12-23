@@ -1,0 +1,36 @@
+{
+	"name": "DS_TOEDPP_SRC_DELETE_FLDR",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Azure_adls_l6clde1eimraw",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Folder": {
+				"type": "string"
+			},
+			"file_system": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "TOEDPP"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().Folder",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().file_system",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

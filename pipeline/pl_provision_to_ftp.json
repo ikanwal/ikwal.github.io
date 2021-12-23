@@ -1,0 +1,327 @@
+{
+	"name": "pl_provision_to_ftp",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_lookup_output_metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_OutputMetadata]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_outputmetadata_details",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_output_metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('plac_lookup_output_metadata').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "plac_execpl_provision_to_output",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "plac_update_ingestion_audit_validation_1",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_provisioned_to_output",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"business_date": {
+										"value": "@pipeline().parameters.business_date",
+										"type": "Expression"
+									},
+									"table_name": {
+										"value": "@item().table_name",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "plac_execpl_output_to_sftp",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "plac_execpl_provision_to_output",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "plac_copy_output_to_ftp",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"table_name": {
+										"value": "@item().table_name",
+										"type": "Expression"
+									},
+									"business_date": {
+										"value": "@pipeline().parameters.business_date",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "plac_update_ingestion_audit_validation_1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+								"storedProcedureParameters": {
+									"action": {
+										"value": "start_audit",
+										"type": "String"
+									},
+									"business_date": {
+										"type": "String"
+									},
+									"control_file_name": {
+										"value": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"error_message": {
+										"type": "String"
+									},
+									"pipeline_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqldb",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "plac_update_ingestion_audit_validation",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "plac_execpl_provision_to_output",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+								"storedProcedureParameters": {
+									"action": {
+										"value": "failed",
+										"type": "String"
+									},
+									"business_date": {
+										"type": "String"
+									},
+									"control_file_name": {
+										"value": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"error_message": {
+										"value": {
+											"value": "@{activity('plac_execpl_provision_to_output').error.message}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_id": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqldb",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "plac_update_ingestion_audit_validation_2",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "plac_execpl_output_to_sftp",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+								"storedProcedureParameters": {
+									"action": {
+										"value": "failed",
+										"type": "String"
+									},
+									"business_date": {
+										"type": "String"
+									},
+									"control_file_name": {
+										"value": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"error_message": {
+										"value": {
+											"value": "@{activity('plac_execpl_output_to_sftp').error.message}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_id": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqldb",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "plac_update_ingestion_audit_validation1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "plac_execpl_output_to_sftp",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_Ingestion_audit]",
+								"storedProcedureParameters": {
+									"action": {
+										"value": "Success",
+										"type": "String"
+									},
+									"business_date": {
+										"type": "String"
+									},
+									"control_file_name": {
+										"value": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"error_message": {
+										"type": "String"
+									},
+									"pipeline_id": {
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqldb",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"business_date": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/GENERIC_PIPELINES/OUTPUT/LAYER_2"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:36Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

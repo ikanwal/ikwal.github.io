@@ -1,0 +1,304 @@
+{
+	"name": "Json1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "GTPResponse.json",
+				"container": "demo"
+			},
+			"encodingName": "UTF-8"
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"continuationToken": {
+					"type": "null"
+				},
+				"@odata.count": {
+					"type": "integer"
+				},
+				"@search.coverage": {
+					"type": "null"
+				},
+				"@search.facets": {
+					"type": "null"
+				},
+				"@search.nextPageParameters": {
+					"type": "null"
+				},
+				"value": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"document": {
+								"type": "object",
+								"properties": {
+									"@search.score": {
+										"type": "number"
+									},
+									"id": {
+										"type": "string"
+									},
+									"name": {
+										"type": "string"
+									},
+									"status": {
+										"type": "string"
+									},
+									"assignedToIds": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"assignedToNames": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"ownerId": {
+										"type": "string"
+									},
+									"ownerName": {
+										"type": "string"
+									},
+									"dueDate": {
+										"type": "string"
+									},
+									"entityIds": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"displayEntityIDs": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"entities": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"jurisdictionIds": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"jurisdictionNames": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"countryId": {
+										"type": "integer"
+									},
+									"countryName": {
+										"type": "string"
+									},
+									"serviceCategory": {
+										"type": "string"
+									},
+									"serviceId": {
+										"type": "integer"
+									},
+									"serviceName": {
+										"type": "string"
+									},
+									"taxPeriodId": {
+										"type": "integer"
+									},
+									"taxPeriod": {
+										"type": "string"
+									},
+									"taxYearId": {
+										"type": "integer"
+									},
+									"taxYear": {
+										"type": "string"
+									},
+									"hasNote": {
+										"type": "boolean"
+									},
+									"isDeleted": {
+										"type": "boolean"
+									},
+									"notifiedUserIds": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"notifiedUsers": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"lastUpdated": {
+										"type": "string"
+									},
+									"description": {
+										"type": "string"
+									},
+									"statutoryDueDate": {
+										"type": "null"
+									},
+									"deliverable": {
+										"type": "null"
+									},
+									"engagementId": {
+										"type": "string"
+									},
+									"engagementName": {
+										"type": "string"
+									},
+									"region": {
+										"type": "string"
+									},
+									"typeOfDataInFile": {
+										"type": "string"
+									},
+									"financialLedgerType": {
+										"type": "string"
+									},
+									"dataSource": {
+										"type": "string"
+									},
+									"dataFrequency": {
+										"type": "string"
+									},
+									"suggestedNumOfFiles": {
+										"type": "integer"
+									},
+									"fiscalPeriodStartDt": {
+										"type": "string"
+									},
+									"fiscalPeriodEndDt": {
+										"type": "string"
+									},
+									"parentId": {
+										"type": "null"
+									},
+									"taxServiceId": {
+										"type": "integer"
+									},
+									"taxServiceName": {
+										"type": "string"
+									},
+									"createdDtm": {
+										"type": "string"
+									},
+									"version": {
+										"type": "null"
+									},
+									"userAssignments": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"userId": {
+													"type": "null"
+												},
+												"userFullName": {
+													"type": "null"
+												},
+												"userGroupId": {
+													"type": "integer"
+												},
+												"userGroupName": {
+													"type": "string"
+												}
+											}
+										}
+									},
+									"owner": {
+										"type": "object",
+										"properties": {
+											"userId": {
+												"type": "string"
+											},
+											"userFullName": {
+												"type": "string"
+											},
+											"userGroupId": {
+												"type": "integer"
+											},
+											"userGroupName": {
+												"type": "string"
+											}
+										}
+									},
+									"usersToNotify": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"userId": {
+													"type": "null"
+												},
+												"userFullName": {
+													"type": "null"
+												},
+												"userGroupId": {
+													"type": "integer"
+												},
+												"userGroupName": {
+													"type": "string"
+												}
+											}
+										}
+									},
+									"workProducts": {
+										"type": "array"
+									},
+									"customAttributes": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "integer"
+												},
+												"attrValue": {
+													"type": "string"
+												},
+												"type": {
+													"type": "null"
+												}
+											}
+										}
+									}
+								}
+							},
+							"@search.score": {
+								"type": "number"
+							},
+							"@search.highlights": {
+								"type": "null"
+							}
+						}
+					}
+				},
+				"@odata.nextLink": {
+					"type": "null"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

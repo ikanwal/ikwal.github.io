@@ -1,0 +1,107 @@
+{
+	"name": "pl_main_provisioned_monthly_seq_child",
+	"properties": {
+		"description": "Pipeline: Runs for Provisioned tables load monthly in a job id sequence",
+		"activities": [
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_prov_job_seq",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('plac_lookup_prov_job_seq').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "provision_pipeline_for_seq",
+							"description": "",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_execute_job_generic",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"job_id": {
+										"value": "@item().job_id",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "plac_lookup_prov_job_seq",
+				"description": "",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_ProvisionJobsSeq]",
+						"storedProcedureParameters": {
+							"input_job_id_end": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.in_end_job_id",
+									"type": "Expression"
+								}
+							},
+							"input_job_id_start": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.in_start_job_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "00:02:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_asql_amlsam",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"in_start_job_id": {
+				"type": "string"
+			},
+			"in_end_job_id": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Provisioned"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

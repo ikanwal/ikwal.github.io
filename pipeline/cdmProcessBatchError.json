@@ -1,0 +1,188 @@
+{
+	"name": "cdmProcessBatchError",
+	"properties": {
+		"activities": [
+			{
+				"name": "ProcessBatchError",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "cdm.process_batch_error_log",
+					"storedProcedureParameters": {
+						"error_message": {
+							"value": {
+								"value": "@pipeline().parameters.ErrorMessage",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"error_number": {
+							"value": {
+								"value": "@pipeline().parameters.ErrorNumber",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"error_scope": {
+							"value": {
+								"value": "@pipeline().parameters.ErrorScope",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"process_batch_key": {
+							"value": {
+								"value": "@pipeline().parameters.ProcessBatchKey",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"error_type_cd": {
+							"value": "E",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LoggerDatabase",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Send Email Notification",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LookupProcessUID",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "emailDataFactoryNotifications",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EmailTo": {
+							"value": "@pipeline().parameters.ErrorEmailID",
+							"type": "Expression"
+						},
+						"EmailSubject": {
+							"value": "@concat(concat(concat(concat(pipeline().DataFactory, ' Failure - PBK: '),string(pipeline().parameters.ProcessBatchKey)),' - '),activity('LookupProcessUID').output?.firstrow?.process_uid)",
+							"type": "Expression"
+						},
+						"EmailMessage": {
+							"value": "@pipeline().parameters.ErrorMessage",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ProcessBatchConclude",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ProcessBatchError",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchConclude",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"process_batch_key": {
+							"value": "@pipeline().parameters.ProcessBatchKey",
+							"type": "Expression"
+						},
+						"completed_ind": {
+							"value": "0",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "LookupProcessUID",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "ProcessBatchError",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT process_uid FROM cdm.process_batch WHERE process_batch_key = '@{pipeline().parameters.ProcessBatchKey}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Audit",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ProcessBatchKey": {
+				"type": "int",
+				"defaultValue": 288
+			},
+			"ErrorMessage": {
+				"type": "string",
+				"defaultValue": "test"
+			},
+			"ErrorNumber": {
+				"type": "string",
+				"defaultValue": "2"
+			},
+			"ErrorScope": {
+				"type": "string",
+				"defaultValue": "test"
+			},
+			"ErrorEmailID": {
+				"type": "string",
+				"defaultValue": "etljobfailure@redoaksourcing.com,5139083773@messaging.sprintpcs.com"
+			}
+		},
+		"folder": {
+			"name": "Logging"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-08T15:02:10Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

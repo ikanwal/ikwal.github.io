@@ -1,0 +1,2023 @@
+{
+	"name": "PL_COPY_SFTP_bulkCopy_large_PT",
+	"properties": {
+		"activities": [
+			{
+				"name": "lkpListOfMalcode",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "getConfigvalues",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select distinct(malcode) from dbo.data_movement_transfer_log_poc where dm_adf_process_status = 'New' and malcode IN ('DAS', 'WDORG');",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_ASQL_parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"tableName": "data_movement_transfer_log_poc"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_loadfiles",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lkpListOfMalcode",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lkpListOfMalcode').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "createHistoricalFileListEven",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[dbo].[sp_data_movement_get_onprem_file_list_poc_02]",
+									"storedProcedureParameters": {
+										"pin_adls_storage_type": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_storage_type')",
+												"type": "Expression"
+											}
+										},
+										"pin_pipeline_run_id": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
+										},
+										"pin_node": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_node_1')",
+												"type": "Expression"
+											}
+										},
+										"pin_v_data_path": {
+											"type": "String",
+											"value": {
+												"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+												"type": "Expression"
+											}
+										},
+										"pin_row_type": {
+											"type": "String",
+											"value": "even"
+										},
+										"pin_malcode": {
+											"type": "String",
+											"value": {
+												"value": "@item().malcode",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "SftpWriteSettings",
+										"operationTimeout": "01:00:00",
+										"useTempFileRename": true
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ASQL_parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": "data_movement_transfer_log_poc"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SFTP_DelimitedLog",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId)",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@concat(item().malcode,'_historical_even_filelist.txt')",
+											"type": "Expression"
+										},
+										"Header": false
+									}
+								}
+							]
+						},
+						{
+							"name": "createHistoricalFileListOdd",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[dbo].[sp_data_movement_get_onprem_file_list_poc_02]",
+									"storedProcedureParameters": {
+										"pin_adls_storage_type": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_storage_type')",
+												"type": "Expression"
+											}
+										},
+										"pin_pipeline_run_id": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
+										},
+										"pin_node": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_node_1')",
+												"type": "Expression"
+											}
+										},
+										"pin_v_data_path": {
+											"type": "String",
+											"value": {
+												"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+												"type": "Expression"
+											}
+										},
+										"pin_row_type": {
+											"type": "String",
+											"value": "odd"
+										},
+										"pin_malcode": {
+											"type": "String",
+											"value": {
+												"value": "@item().malcode",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "SftpWriteSettings",
+										"operationTimeout": "01:00:00",
+										"useTempFileRename": true
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ASQL_parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": "data_movement_transfer_log_poc"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SFTP_DelimitedLog",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId)",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@concat(item().malcode,'_historical_odd_filelist.txt')",
+											"type": "Expression"
+										},
+										"Header": false
+									}
+								}
+							]
+						},
+						{
+							"name": "createRetrievalFileListEven",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "createHistoricalFileListEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[dbo].[sp_data_movement_get_onprem_retrieval_file_list_poc_02]",
+									"storedProcedureParameters": {
+										"pin_adls_storage_type": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_storage_type')",
+												"type": "Expression"
+											}
+										},
+										"pin_pipeline_run_id": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
+										},
+										"pin_node": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_node_1')",
+												"type": "Expression"
+											}
+										},
+										"pin_v_data_path": {
+											"type": "String",
+											"value": {
+												"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+												"type": "Expression"
+											}
+										},
+										"pin_row_type": {
+											"type": "String",
+											"value": "even"
+										},
+										"pin_retrieval_filter": {
+											"type": "String",
+											"value": "2020-01-01"
+										},
+										"pin_malcode": {
+											"type": "String",
+											"value": {
+												"value": "@item().malcode",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "SftpWriteSettings",
+										"operationTimeout": "01:00:00",
+										"useTempFileRename": true
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ASQL_parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": "data_movement_transfer_log_poc"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SFTP_DelimitedLog",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId)",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@concat(item().malcode,'_retrieval_even_filelist.txt')",
+											"type": "Expression"
+										},
+										"Header": false
+									}
+								}
+							]
+						},
+						{
+							"name": "createRetrievalFileListOdd",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "createHistoricalFileListOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[dbo].[sp_data_movement_get_onprem_retrieval_file_list_poc_02]",
+									"storedProcedureParameters": {
+										"pin_adls_storage_type": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_storage_type')",
+												"type": "Expression"
+											}
+										},
+										"pin_pipeline_run_id": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
+										},
+										"pin_node": {
+											"type": "String",
+											"value": {
+												"value": "@variables('v_node_1')",
+												"type": "Expression"
+											}
+										},
+										"pin_v_data_path": {
+											"type": "String",
+											"value": {
+												"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+												"type": "Expression"
+											}
+										},
+										"pin_row_type": {
+											"type": "String",
+											"value": "odd"
+										},
+										"pin_retrieval_filter": {
+											"type": "String",
+											"value": "2020-01-01"
+										},
+										"pin_malcode": {
+											"type": "String",
+											"value": {
+												"value": "@item().malcode",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "SftpWriteSettings",
+										"operationTimeout": "01:00:00",
+										"useTempFileRename": true
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ASQL_parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": "data_movement_transfer_log_poc"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SFTP_DelimitedLog",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId)",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@concat(item().malcode,'_retrieval_odd_filelist.txt')",
+											"type": "Expression"
+										},
+										"Header": false
+									}
+								}
+							]
+						},
+						{
+							"name": "copyHistoricalDataOnPremEven",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "createHistoricalFileListEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "SftpReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"fileListPath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId, '/',item().malcode,'_historical_even_filelist.txt')",
+											"type": "Expression"
+										},
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 24,
+								"skipErrorFile": {
+									"fileMissing": true
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SFTP_BinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_LandingBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_rahona_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','even')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyHistoricalDataAdlsEven",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataOnPremEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_rahona_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','even')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "*",
+										"deleteFilesAfterCompletion": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 5,
+								"skipErrorFile": {
+									"fileMissing": false,
+									"dataInconsistency": true
+								},
+								"validateDataConsistency": true
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ADLS_LandingBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_rahona_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','even')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_LandingBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'),'/',variables('v_poc_rahona_initload'),'/')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyHistoricalDataOnPremOdd",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "createHistoricalFileListOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "SftpReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"fileListPath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId, '/',item().malcode,'_historical_odd_filelist.txt')",
+											"type": "Expression"
+										},
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 24,
+								"skipErrorFile": {
+									"fileMissing": false
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SFTP_BinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_LandingBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_rahona_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','odd')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyHistoricalDataAdlsOdd",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataOnPremOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_rahona_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','odd')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "*",
+										"deleteFilesAfterCompletion": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 5,
+								"skipErrorFile": {
+									"fileMissing": false,
+									"dataInconsistency": true
+								},
+								"validateDataConsistency": true
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ADLS_LandingBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_rahona_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','odd')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_LandingBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'),'/',variables('v_poc_rahona_initload'),'/')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyRetrievalDataOnPremEven",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "createRetrievalFileListEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "SftpReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"fileListPath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId, '/',item().malcode,'_retrieval_even_filelist.txt')",
+											"type": "Expression"
+										},
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 24,
+								"skipErrorFile": {
+									"fileMissing": true
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SFTP_BinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_RetrievalBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_retrieval_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','even')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyRetrievalDataAdlsEven",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataOnPremEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_retrieval_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','even')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "*",
+										"deleteFilesAfterCompletion": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 5,
+								"skipErrorFile": {
+									"fileMissing": true,
+									"dataInconsistency": true
+								},
+								"validateDataConsistency": true
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ADLS_RetrievalBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_retrieval_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','even')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_RetrievalBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'),'/',variables('v_poc_retrieval_initload'),'/')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyRetrievalDataOnPremOdd",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "createRetrievalFileListOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "SftpReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"fileListPath": {
+											"value": "@concat(activity('getConfigvalues').output.value[1].lookup_value, variables('v_storage_type'), '/filelist/', pipeline().RunId, '/',item().malcode,'_retrieval_odd_filelist.txt')",
+											"type": "Expression"
+										},
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 24,
+								"skipErrorFile": {
+									"fileMissing": false
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SFTP_BinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@activity('getConfigvalues').output.value[0].lookup_value",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_RetrievalBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_retrieval_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','odd')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copyRetrievalDataAdlsOdd",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataOnPremOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_src_copy_act_conn')",
+											"type": "Expression"
+										},
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_retrieval_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','odd')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "*",
+										"deleteFilesAfterCompletion": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"maxConcurrentConnections": {
+											"value": "@variables('v_poc_tar_copy_act_conn')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 5,
+								"skipErrorFile": {
+									"fileMissing": false,
+									"dataInconsistency": true
+								},
+								"validateDataConsistency": true
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ADLS_RetrievalBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'), '/',variables('v_poc_retrieval_initload'),'/','temp/', variables('v_storage_type'), '/', pipeline().RunId,'/','odd')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_RetrievalBinaryParameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FilePath": {
+											"value": "@concat(variables('v_poc_poc_dir'),'/',variables('v_poc_retrieval_initload'),'/')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "updateStatusRetrievalCopiedEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataAdlsEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Copied",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('throughput: ', activity('copyRetrievalDataOnPremEven').output.throughput, ', copyDuration: ', activity('copyRetrievalDataOnPremEven').output.copyDuration, ', filesWritten: ', activity('copyRetrievalDataOnPremEven').output.filesWritten, ', dataWritten: ', activity('copyRetrievalDataOnPremEven').output.dataWritten)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalRetryEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataAdlsEven",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyRetrievalDataAdlsEven; ', 'Code~', activity('copyRetrievalDataAdlsEven').output.errors[0].Code, ';Message~', activity('copyRetrievalDataAdlsEven').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalDataOnPremEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataOnPremEven",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyRetrievalDataOnPremEven; ', 'Code~', activity('copyRetrievalDataOnPremEven').output.errors[0].Code, ';Message~', activity('copyRetrievalDataOnPremEven').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalDataOnPremEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataOnPremEven",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyHistoricalDataOnPremEven; ', 'Code~', activity('copyHistoricalDataOnPremEven').output.errors[0].Code, ';Message~', activity('copyHistoricalDataOnPremEven').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalCopiedEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataAdlsEven",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Copied",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('throughput: ', activity('copyHistoricalDataOnPremEven').output.throughput, ', copyDuration: ', activity('copyHistoricalDataOnPremEven').output.copyDuration, ', filesWritten: ', activity('copyHistoricalDataOnPremEven').output.filesWritten, ', dataWritten: ', activity('copyHistoricalDataOnPremEven').output.dataWritten)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalRetryEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataAdlsEven",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyHistoricalDataAdlsEven; ', 'Code~', activity('copyHistoricalDataAdlsEven').output.errors[0].Code, ';Message~', activity('copyHistoricalDataAdlsEven').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalCopiedOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataAdlsOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Copied",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('throughput: ', activity('copyRetrievalDataOnPremOdd').output.throughput, ', copyDuration: ', activity('copyRetrievalDataOnPremOdd').output.copyDuration, ', filesWritten: ', activity('copyRetrievalDataOnPremOdd').output.filesWritten, ', dataWritten: ', activity('copyRetrievalDataOnPremOdd').output.dataWritten)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalRetryOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataAdlsOdd",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyRetrievalDataAdlsOdd; ', 'Code~', activity('copyRetrievalDataAdlsOdd').output.errors[0].Code, ';Message~', activity('copyRetrievalDataAdlsOdd').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalDataOnPremOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataOnPremOdd",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyHistoricalDataOnPremOdd; ', 'Code~', activity('copyHistoricalDataOnPremOdd').output.errors[0].Code, ';Message~', activity('copyHistoricalDataOnPremOdd').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalCopiedOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataAdlsOdd",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Copied",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('throughput: ', activity('copyHistoricalDataOnPremOdd').output.throughput, ', copyDuration: ', activity('copyHistoricalDataOnPremOdd').output.copyDuration, ', filesWritten: ', activity('copyHistoricalDataOnPremOdd').output.filesWritten, ', dataWritten: ', activity('copyHistoricalDataOnPremOdd').output.dataWritten)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalRetryOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyHistoricalDataAdlsOdd",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyHistoricalDataAdlsOdd; ', 'Code~', activity('copyHistoricalDataAdlsOdd').output.errors[0].Code, ';Message~', activity('copyHistoricalDataAdlsOdd').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalDataOnPremOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copyRetrievalDataOnPremOdd",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "Retry",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~copyRetrievalDataOnPremOdd; ', 'Code~', activity('copyRetrievalDataOnPremOdd').output.errors[0].Code, ';Message~', activity('copyRetrievalDataOnPremOdd').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalNewEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "createRetrievalFileListEven",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "New",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~createRetrievalFileListEven; ', 'Code~', activity('createRetrievalFileListEven').output.errors[0].Code, ';Message~', activity('createRetrievalFileListEven').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalNewEven",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "createHistoricalFileListEven",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "New",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~createHistoricalFileListEven; ', 'Code~', activity('createHistoricalFileListEven').output.errors[0].Code, ';Message~', activity('createHistoricalFileListEven').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "even",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusHistoricalNewOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "createHistoricalFileListOdd",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "New",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~createHistoricalFileListOdd; ', 'Code~', activity('createHistoricalFileListOdd').output.errors[0].Code, ';Message~', activity('createHistoricalFileListOdd').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "updateStatusRetrievalNewOdd",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "createRetrievalFileListOdd",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_data_movement_retrieval_batch_update_log_poc]",
+								"storedProcedureParameters": {
+									"pin_pipeline_run_id": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_status": {
+										"value": "New",
+										"type": "String"
+									},
+									"pin_log_comments": {
+										"value": {
+											"value": "@concat('Activity~createRetrievalFileListOdd; ', 'Code~', activity('createRetrievalFileListOdd').output.errors[0].Code, ';Message~', activity('createRetrievalFileListOdd').output.errors[0].Message)",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pin_row_type": {
+										"value": "odd",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ASQL_LogDB",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "getConfigvalues",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select *from dbo.data_movement_config_poc where lookup_key in ('DataPathRetrieval','LogPathADF') order by lookup_key;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_ASQL_parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"tableName": "dbo.data_movement_config_poc"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"variables": {
+			"v_node_1": {
+				"type": "String",
+				"defaultValue": "dev-r11edge.c21.hadoop.td.com"
+			},
+			"v_storage_type": {
+				"type": "String",
+				"defaultValue": "retrieval"
+			},
+			"v_poc_rahona_initload": {
+				"type": "String",
+				"defaultValue": "rahona_initload"
+			},
+			"v_poc_retrieval_initload": {
+				"type": "String",
+				"defaultValue": "retrieval_initload"
+			},
+			"v_poc_poc_dir": {
+				"type": "String",
+				"defaultValue": "edpp_arch_poc5"
+			},
+			"v_poc_src_copy_act_conn": {
+				"type": "String",
+				"defaultValue": "100"
+			},
+			"v_poc_tar_copy_act_conn": {
+				"type": "String",
+				"defaultValue": "75"
+			}
+		},
+		"folder": {
+			"name": "retrieval"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-28T04:13:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,25 @@
+{
+	"name": "adls01_readwrite_ls",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://nfcudlabsintgeusadls01.dfs.core.windows.net/",
+			"servicePrincipalId": "b2fb49b8-7888-45a0-9032-579972eb186d",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "dakv_ls",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "DLABS-DIM-ADLS-WRITE-APPKEY"
+			},
+			"tenant": "4cb791f1-02d1-4a4e-8610-911ee57bb08c"
+		},
+		"connectVia": {
+			"referenceName": "NFCU-DLABS-EUS-DATAFACTORY-SHIR-2020",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

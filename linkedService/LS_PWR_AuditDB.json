@@ -1,0 +1,15 @@
+{
+	"name": "LS_PWR_AuditDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=zneudl1p12sqlsrv002.database.windows.net;Initial Catalog=zneudl1p12sqldb001"
+		},
+		"connectVia": {
+			"referenceName": "ADF-P40-ING-HA-IR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

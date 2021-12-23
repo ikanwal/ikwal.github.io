@@ -1,0 +1,15 @@
+{
+	"name": "LS_ASQL_LogDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=d3001-eastus2-asql-1.database.windows.net;Initial Catalog=eda-akora2-aaedl-archivedbdev"
+		},
+		"connectVia": {
+			"referenceName": "aaedl-shir-datamvt",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

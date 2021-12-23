@@ -1,0 +1,35 @@
+{
+	"name": "Excel2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage3",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Book-deloitte",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Book-deloitte.xlsx",
+				"container": "demo"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "colum1",
+				"type": "String"
+			},
+			{
+				"name": "colum2",
+				"type": "String"
+			},
+			{
+				"name": "colum3",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

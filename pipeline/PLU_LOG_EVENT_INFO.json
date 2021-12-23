@@ -1,0 +1,82 @@
+{
+	"name": "PLU_LOG_EVENT_INFO",
+	"properties": {
+		"description": "Logs the event into into delta table",
+		"activities": [
+			{
+				"name": "LogEventNotebook",
+				"description": "Notebook to log event info into delta table",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@concat(pipeline().globalParameters.adb_ntbk_base_path,'/inference/LogEIMEvent')",
+						"type": "Expression"
+					},
+					"baseParameters": {
+						"run_id": {
+							"value": "@pipeline().parameters.run_id",
+							"type": "Expression"
+						},
+						"event_id": {
+							"value": "@pipeline().parameters.event_id",
+							"type": "Expression"
+						},
+						"event_source": {
+							"value": "@pipeline().parameters.event_source",
+							"type": "Expression"
+						},
+						"event_value": {
+							"value": "@pipeline().parameters.event_value",
+							"type": "Expression"
+						},
+						"application": {
+							"value": "@pipeline().parameters.application",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_Service",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"run_id": {
+				"type": "string",
+				"defaultValue": "default"
+			},
+			"event_id": {
+				"type": "string",
+				"defaultValue": "default"
+			},
+			"event_source": {
+				"type": "string",
+				"defaultValue": "default"
+			},
+			"event_value": {
+				"type": "string",
+				"defaultValue": "default"
+			},
+			"application": {
+				"type": "string",
+				"defaultValue": "default"
+			}
+		},
+		"folder": {
+			"name": "UTIL"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-14T01:36:38Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

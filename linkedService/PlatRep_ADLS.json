@@ -1,0 +1,19 @@
+{
+	"name": "PlatRep_ADLS",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://pzigxnu2slprdlq001.dfs.core.windows.net",
+			"accountKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "PRDM_AKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "PlatRep-ADLS-Key"
+			}
+		},
+		"annotations": []
+	}
+}

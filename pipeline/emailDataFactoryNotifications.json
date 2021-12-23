@@ -1,0 +1,58 @@
+{
+	"name": "emailDataFactoryNotifications",
+	"properties": {
+		"description": "Parameterized Pipeline to send email associated with Data Factory Pipeline Notifications",
+		"activities": [
+			{
+				"name": "Send Email Notification",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-25.eastus.logic.azure.com:443/workflows/de54be4114884588a50df68f72dfd7ca/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=kasAXI67B0U4ON4izistF1qgOvcKBvMkP0TXVtdH2bw",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"EmailSubject": "@pipeline().parameters.EmailSubject",
+						"EmailMessage": "@pipeline().parameters.EmailMessage",
+						"EmailTo": "@pipeline().parameters.EmailTo"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"EmailTo": {
+				"type": "string",
+				"defaultValue": "etljobfailure@redoaksourcing.com;5139083773@messaging.sprintpcs.com"
+			},
+			"EmailSubject": {
+				"type": "string",
+				"defaultValue": "TestSubject2"
+			},
+			"EmailMessage": {
+				"type": "string",
+				"defaultValue": "TestBody2"
+			}
+		},
+		"variables": {
+			"IsActive": {
+				"type": "Boolean"
+			}
+		},
+		"folder": {
+			"name": "Logging"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-08T15:02:04Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

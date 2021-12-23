@@ -1,0 +1,301 @@
+{
+	"name": "AP_RMS_PROD",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Delta Folders",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Copy Schema",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "HdfsReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "PROD_DELTA_LIST_HDFS",
+						"type": "DatasetReference",
+						"parameters": {
+							"FilePath": {
+								"value": "@concat('analytics_platform/etl/', pipeline().parameters.countryCode, '/cloud_copy')",
+								"type": "Expression"
+							},
+							"DeleteFolderListFIleName": {
+								"value": "@concat('copy_list_', pipeline().parameters.executionId,'.csv')",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Get Delta Folder",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Delta Folders",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Delta Folders').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Get Destination Metadata",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "BDL_US_PROD_GEN2",
+									"type": "DatasetReference",
+									"parameters": {
+										"desPath": {
+											"value": "@item().Prop_0",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							}
+						},
+						{
+							"name": "Check Folder Availablity",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Get Destination Metadata",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@activity('Get Destination Metadata').output.exists",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Delete Destination Path",
+										"type": "Delete",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "BDL_US_PROD_GEN2",
+												"type": "DatasetReference",
+												"parameters": {
+													"desPath": {
+														"value": "@item().Prop_0",
+														"type": "Expression"
+													}
+												}
+											},
+											"logStorageSettings": {
+												"linkedServiceName": {
+													"referenceName": "US_SI_GEN2_ADLS_AP_BDL",
+													"type": "LinkedServiceReference"
+												},
+												"path": "ap-buy-datalake/analytics_platform/etl/log/adf/"
+											},
+											"enableLogging": true,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Copy Onprem RMS Data To Cloud",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Check Folder Availablity",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "HdfsReadSettings",
+										"recursive": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "USPROD_ONPERM",
+									"type": "DatasetReference",
+									"parameters": {
+										"sourcePath": {
+											"value": "@item().Prop_0",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "BDL_US_PROD_GEN2",
+									"type": "DatasetReference",
+									"parameters": {
+										"desPath": {
+											"value": "@item().Prop_0",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Copy Schema",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "HdfsReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "USPROD_ONPERM",
+						"type": "DatasetReference",
+						"parameters": {
+							"sourcePath": {
+								"value": "@concat('analytics_platform/etl/', pipeline().parameters.countryCode, '/schema')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BDL_US_PROD_GEN2",
+						"type": "DatasetReference",
+						"parameters": {
+							"desPath": {
+								"value": "@concat('analytics_platform/etl/', pipeline().parameters.countryCode, '/schema')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"countryCode": {
+				"type": "String"
+			},
+			"executionId": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "PROD_ONPREM_CLOUD_COPY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-28T04:14:27Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

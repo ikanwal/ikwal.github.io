@@ -1,0 +1,11 @@
+{
+	"name": "dakv_ls",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://dlabs-INTG-EUS-app-a-kv.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}

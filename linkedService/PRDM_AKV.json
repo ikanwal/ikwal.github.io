@@ -1,0 +1,11 @@
+{
+	"name": "PRDM_AKV",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://PZI-GXUS-N-VLT-PRDM-Q001.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,53 @@
+{
+	"name": "Dw_Amperity_Inbound",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_synapse_adbdwdbo",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Schema_Name": {
+				"type": "string"
+			},
+			"Table_Name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "amperity_id",
+				"type": "varchar"
+			},
+			{
+				"name": "src_sys_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "datasource",
+				"type": "varchar"
+			},
+			{
+				"name": "cust_acct",
+				"type": "varchar"
+			},
+			{
+				"name": "status",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().Schema_Name",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().Table_Name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,18 @@
+{
+	"name": "DS_GZFEDPTELPD1STO001_PD_TELEMATICS_MODELED",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_gzfedptelpd1sto001_pd_telematics_modeled",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "pd-telematics-modeled"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

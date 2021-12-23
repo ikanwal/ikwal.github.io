@@ -1,0 +1,30 @@
+{
+	"name": "DremioJSONCatalogOutput",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "PlatRep_ADLS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"dremioInstanceName": {
+				"type": "string",
+				"defaultValue": "qa-dremio-instance001.pwclabs.pwcglb.com"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "spaces.json",
+				"folderPath": {
+					"value": "@concat('DremioCatalog/processing/spacelist/',dataset().dremioInstanceName)",
+					"type": "Expression"
+				},
+				"fileSystem": "platformreporting"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

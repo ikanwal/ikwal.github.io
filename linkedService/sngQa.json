@@ -1,0 +1,12 @@
+{
+	"name": "sngQa",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "CosmosDbMongoDbApi",
+		"typeProperties": {
+			"connectionString": "mongodb://scanandgo-qa:@scanandgo-qa.documents.azure.com:10255/?ssl=true;replicaSet=globaldb",
+			"database": "admin"
+		},
+		"annotations": []
+	}
+}

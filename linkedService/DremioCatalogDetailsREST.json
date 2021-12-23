@@ -1,0 +1,43 @@
+{
+	"name": "DremioCatalogDetailsREST",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "RestService",
+		"typeProperties": {
+			"url": "@{linkedService().dremioFacadeServiceEndPoint}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": "@{linkedService().dremioUserName}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "PRDM_AKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().dremioUserPwdSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "PRDM-ADF-Q001",
+			"type": "IntegrationRuntimeReference"
+		},
+		"parameters": {
+			"dremioFacadeServiceEndPoint": {
+				"type": "string",
+				"defaultValue": "https://dremio-service-qa.pwclabs.pwcglb.com/api/v1/"
+			},
+			"dremioUserName": {
+				"type": "string",
+				"defaultValue": "US_adv_Dremio_s001"
+			},
+			"dremioUserPwdSecretName": {
+				"type": "string",
+				"defaultValue": "us-adv-dremio-s001-pwd"
+			}
+		},
+		"annotations": []
+	}
+}

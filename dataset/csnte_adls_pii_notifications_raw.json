@@ -1,0 +1,149 @@
+{
+	"name": "csnte_adls_pii_notifications_raw",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Prod_ADLS",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CSNTE_Ingestion_Datasets/Notifications"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "raw-pii/notificationdetails",
+				"fileSystem": "csnte-pii"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "recordLocator",
+				"type": "UTF8"
+			},
+			{
+				"name": "AAdvantageNumber",
+				"type": "UTF8"
+			},
+			{
+				"name": "firstName",
+				"type": "UTF8"
+			},
+			{
+				"name": "lastName",
+				"type": "UTF8"
+			},
+			{
+				"name": "contactAddress",
+				"type": "UTF8"
+			},
+			{
+				"name": "createDate",
+				"type": "INT96"
+			},
+			{
+				"name": "contactGuid",
+				"type": "UTF8"
+			},
+			{
+				"name": "contactGuidSeq",
+				"type": "INT32"
+			},
+			{
+				"name": "eventSource",
+				"type": "UTF8"
+			},
+			{
+				"name": "requestingOrganization",
+				"type": "UTF8"
+			},
+			{
+				"name": "requestingSystem",
+				"type": "UTF8"
+			},
+			{
+				"name": "notificationType",
+				"type": "UTF8"
+			},
+			{
+				"name": "templateName",
+				"type": "UTF8"
+			},
+			{
+				"name": "requestTimestamp",
+				"type": "INT96"
+			},
+			{
+				"name": "deliverBy",
+				"type": "INT96"
+			},
+			{
+				"name": "expiresAt",
+				"type": "INT96"
+			},
+			{
+				"name": "correlationID",
+				"type": "UTF8"
+			},
+			{
+				"name": "groupId",
+				"type": "UTF8"
+			},
+			{
+				"name": "vendorName",
+				"type": "UTF8"
+			},
+			{
+				"name": "contactType",
+				"type": "UTF8"
+			},
+			{
+				"name": "contactSource",
+				"type": "UTF8"
+			},
+			{
+				"name": "contactFieldCode",
+				"type": "UTF8"
+			},
+			{
+				"name": "telcoCountryCode",
+				"type": "INT32"
+			},
+			{
+				"name": "isDayofTravel",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "sentToVendorAt",
+				"type": "INT96"
+			},
+			{
+				"name": "processedByVendorAt",
+				"type": "INT96"
+			},
+			{
+				"name": "reconciledAt",
+				"type": "INT96"
+			},
+			{
+				"name": "isDelivered",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "vendorDisposition",
+				"type": "UTF8"
+			},
+			{
+				"name": "dispositionResultCode",
+				"type": "UTF8"
+			},
+			{
+				"name": "dispositionDescription",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

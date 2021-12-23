@@ -1,0 +1,27 @@
+{
+	"name": "Teradata_ls",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "Teradata",
+		"typeProperties": {
+			"connectionString": {
+				"type": "SecureString",
+				"value": "**********"
+			},
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "dakv_ls",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "DLABS-DIM-TDAccessPassword"
+			}
+		},
+		"connectVia": {
+			"referenceName": "NFCU-DLABS-EUS-DATAFACTORY-SHIR-2020",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "There were major changes to the Teradata linked service connector released with this version. Teradata_IDW_ls is now depricated and should no longer be used. Older datasets which used Teradata_IDW_ls will need to be deleted and recreated.",
+		"annotations": []
+	}
+}

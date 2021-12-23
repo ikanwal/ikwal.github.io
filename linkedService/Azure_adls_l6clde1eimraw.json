@@ -1,0 +1,12 @@
+{
+	"name": "Azure_adls_l6clde1eimraw",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://l6cldp1eimraw.dfs.core.windows.net/"
+		},
+		"description": "l6clde1eimraw stroage",
+		"annotations": []
+	}
+}

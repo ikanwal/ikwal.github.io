@@ -1,0 +1,19 @@
+{
+	"name": "lnk_sql_azure_ingestion",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=prd-szen-ds-sql-rdp-platform.database.windows.net;Initial Catalog=szen-ds-sql-rdp-platform;User ID=Sqlrdpadmin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lnk_kv_rdp_bc",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "prd-sql-platform-bc-rg-secret-key"
+			}
+		},
+		"annotations": []
+	}
+}

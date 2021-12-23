@@ -1,0 +1,41 @@
+{
+	"name": "ds_MDM_Curated",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lnk_adls_rdp_curate_bc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"CuratedPath": {
+				"type": "string"
+			},
+			"CuratedFile": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MDM"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureDataLakeStoreLocation",
+				"fileName": {
+					"value": "@dataset().CuratedFile",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().CuratedPath",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

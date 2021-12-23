@@ -1,0 +1,16 @@
+{
+	"name": "LS_PWR_ADLS2_UDL33",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://zneudl1p33lakesstor.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "ADF-P40-ING-HA-IR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "This is the link service to UDL ADLS Gen 2 in 33 Production Resource Group",
+		"annotations": []
+	}
+}

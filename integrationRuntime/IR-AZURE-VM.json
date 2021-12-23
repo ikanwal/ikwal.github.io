@@ -1,0 +1,11 @@
+{
+	"name": "IR-AZURE-VM",
+	"properties": {
+		"type": "Managed",
+		"typeProperties": {
+			"computeProperties": {
+				"location": "AutoResolve"
+			}
+		}
+	}
+}

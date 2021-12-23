@@ -1,0 +1,95 @@
+{
+	"name": "dataflow2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "CustomatTR",
+						"type": "DatasetReference"
+					},
+					"name": "CustomAttributes"
+				},
+				{
+					"dataset": {
+						"referenceName": "Json2",
+						"type": "DatasetReference"
+					},
+					"name": "GTPResponse"
+				},
+				{
+					"dataset": {
+						"referenceName": "LENOVOREQ",
+						"type": "DatasetReference"
+					},
+					"name": "LenovoRequest"
+				}
+			],
+			"sinks": [
+				{
+					"name": "CachedIDs"
+				},
+				{
+					"name": "CachedAttributes"
+				},
+				{
+					"dataset": {
+						"referenceName": "storelenovo",
+						"type": "DatasetReference"
+					},
+					"name": "storeLenovoRequest"
+				},
+				{
+					"dataset": {
+						"referenceName": "LENOVOREQ",
+						"type": "DatasetReference"
+					},
+					"name": "storeInvalidLenovoRequests"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FilterCustomAttributesForFBL3N"
+				},
+				{
+					"name": "SplitDocument"
+				},
+				{
+					"name": "SplitCustomAttributes"
+				},
+				{
+					"name": "AddCustAttributesNames"
+				},
+				{
+					"name": "AddCustAttributesIDs"
+				},
+				{
+					"name": "CustAttributesFinalValues"
+				},
+				{
+					"name": "ReplaceLogic"
+				},
+				{
+					"name": "RemoveExtraCahes"
+				},
+				{
+					"name": "SplitNullValues"
+				},
+				{
+					"name": "LayoutGLAccNumberDates"
+				},
+				{
+					"name": "GLAccountNumber"
+				},
+				{
+					"name": "EmptyColumns"
+				},
+				{
+					"name": "BusinessConditions"
+				}
+			],
+			"script": "source(output(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string,\n\t\tColumn_5 as string,\n\t\tColumn_6 as string,\n\t\tColumn_7 as string,\n\t\tColumn_8 as string,\n\t\tColumn_9 as string,\n\t\tColumn_10 as string,\n\t\tColumn_11 as string,\n\t\tColumn_12 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tignoreNoFilesFound: false) ~> CustomAttributes\nsource(output(\n\t\tcontinuationToken as string,\n\t\t{@odata.count} as string,\n\t\t{@search.coverage} as string,\n\t\t{@search.facets} as string,\n\t\t{@search.nextPageParameters} as string,\n\t\tvalue as (document as ({@search.score} as double, id as string, name as string, status as string, assignedToIds as string[], assignedToNames as string[], ownerId as string, ownerName as string, dueDate as string, entityIds as string[], displayEntityIDs as string[], entities as string[], jurisdictionIds as string[], jurisdictionNames as string[], countryId as string, countryName as string, serviceCategory as string, serviceId as string, serviceName as string, taxPeriodId as string, taxPeriod as string, taxYearId as string, taxYear as string, hasNote as boolean, isDeleted as boolean, notifiedUserIds as string[], notifiedUsers as string[], lastUpdated as string, description as string, statutoryDueDate as string, deliverable as string, engagementId as string, engagementName as string, region as string, typeOfDataInFile as string, financialLedgerType as string, dataSource as string, dataFrequency as string, suggestedNumOfFiles as string, fiscalPeriodStartDt as string, fiscalPeriodEndDt as string, parentId as string, taxServiceId as string, taxServiceName as string, createdDtm as string, version as string, userAssignments as (userId as string, userFullName as string, userGroupId as string, userGroupName as string)[], owner as (userId as string, userFullName as string, userGroupId as string, userGroupName as string), usersToNotify as (userId as string, userFullName as string, userGroupId as string, userGroupName as string)[], workProducts as string[], customAttributes as (id as string, attrValue as string, type as string)[]), {@search.score} as double, {@search.highlights} as string)[],\n\t\t{@odata.nextLink} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 10000,\n\tignoreNoFilesFound: false,\n\tdocumentForm: 'documentPerLine') ~> GTPResponse\nsource(output(\n\t\tid as string,\n\t\tcountry as string,\n\t\tentityIds as string,\n\t\tentities as string,\n\t\tservice as string,\n\t\tname as string,\n\t\tsource as string,\n\t\tdataPeriodStartDate as string,\n\t\tdataPeriodEndDate as string,\n\t\tdueDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tignoreNoFilesFound: false,\n\tdocumentForm: 'documentPerLine',\n\tunquotedColumnNames: true,\n\tbackslashEscape: true) ~> LenovoRequest\nCustomAttributes filter(Column_2 == 'Deliverable' || Column_2 == 'Information Request Category'|| Column_2 == 'SAP T Code' || Column_2 == 'GL account number' || Column_2 == 'Layout' || Column_2 == 'File Transfer Reference Code' || Column_2 == 'Process Class') ~> FilterCustomAttributesForFBL3N\nGTPResponse foldDown(unroll(value, value),\n\tmapColumn(\n\t\tdocument = value.document,\n\t\tid = value.document.id\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SplitDocument\nSplitDocument foldDown(unroll(document.customAttributes, document.customAttributes),\n\tmapColumn(\n\t\tattrValue = document.customAttributes.attrValue,\n\t\tcustId = document.customAttributes.id,\n\t\ttype = document.customAttributes.type,\n\t\tkey_id = document.id\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SplitCustomAttributes\nLenovoRequest derive(deliverableName = 'Deliverable',\n\t\tinformationRequestCategoryName = 'Information Request Category',\n\t\tsapTcodeName = 'SAP T Code',\n\t\tglAccountNumberName = 'GL account number',\n\t\tlayoutName = 'Layout',\n\t\tfileTransferReferenceCodeName = 'File Transfer Reference Code',\n\t\tprocessClassName = 'Process Class') ~> AddCustAttributesNames\nAddCustAttributesNames derive(deliverableID = CachedIDs#lookup(deliverableName).id,\n\t\tInformationRequestCategoryID = CachedIDs#lookup(informationRequestCategoryName).id,\n\t\tsapTcodeID = CachedIDs#lookup(sapTcodeName).id,\n\t\tglAccountNumberID = CachedIDs#lookup(glAccountNumberName).id,\n\t\tlayoutID = CachedIDs#lookup(layoutName).id,\n\t\tfileTransferReferenceCodeID = CachedIDs#lookup(fileTransferReferenceCodeName).id,\n\t\tprocessClassID = CachedIDs#lookup(processClassName).id,\n\tpartitionBy('hash', 1)) ~> AddCustAttributesIDs\nAddCustAttributesIDs derive(deliverable = CachedAttributes#lookup(id,deliverableID).attrValue,\n\t\tinformationRequestCategory = CachedAttributes#lookup(id,InformationRequestCategoryID).attrValue,\n\t\tsapTcode = CachedAttributes#lookup(id,sapTcodeID).attrValue,\n\t\tglAccountNumber = CachedAttributes#lookup(id,glAccountNumberID).attrValue,\n\t\tlayout = CachedAttributes#lookup(id,layoutID).attrValue,\n\t\tfileTransferReferenceCode = CachedAttributes#lookup(id,fileTransferReferenceCodeID).attrValue,\n\t\tprocessClass = CachedAttributes#lookup(id,processClassID).attrValue) ~> CustAttributesFinalValues\nCustAttributesFinalValues derive(entityIds = replace(replace(entityIds,'[',''),']',''),\n\t\tentities = replace(replace(entities,'[',''),']','')) ~> ReplaceLogic\nReplaceLogic derive(entities = replace(entities, '\\\"', ''),\n\t\tentityIds = replace(entityIds, '\\\"', ''),\n\t\tglAccountNumber = replace(glAccountNumber,',',', ')) ~> RemoveExtraCahes\nBusinessConditions split(country != '' && dataPeriodEndDate != '' && dataPeriodStartDate != '' && entities != '' && toString(id) != '' && entityIds != ''  && name != '' && service != '' && source != '' && deliverable != '' && informationRequestCategory != '' && sapTcode != '' && fileTransferReferenceCode != '' && glAccountNumber != '',\n\tdisjoint: false) ~> SplitNullValues@(ValidStream, InvalidStream)\nRemoveExtraCahes derive(layout = iif(isNull(layout)||layout=='', '/ZTFO_GL_GG1', layout),\n\t\tdueDate = toString(toDate(dueDate), 'M/dd/yyyy'),\n\t\tdataPeriodEndDate = toString(toDate(dataPeriodEndDate), 'M/dd/yyyy'),\n\t\tdataPeriodStartDate = toString(toDate(dataPeriodStartDate), 'M/dd/yyyy')) ~> LayoutGLAccNumberDates\nSplitNullValues@ValidStream derive(glAccountNumber = iif(glAccountNumber == 'All GL Accounts' || glAccountNumber == 'All GL Account', '', glAccountNumber),\n\t\tfileTransferReferenceCode = rtrim('RC'+toString(fileTransferReferenceCode)+'-'+replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(name, '.', '_'),' ','_'),'-','_'),'/','_'),'?','_'),'|','_'),':','_'),'<','_'),'>','_'),'*','_'),'\\\"','_'),'\\\\','_'),'_')) ~> GLAccountNumber\nSplitNullValues@InvalidStream derive({Error Message Header} = 'Missing ' + iif(toString(id) == ''|| isNull(id),'id ','') + iif(country == ''||isNull(country), 'country ', '') + iif(entityIds == ''||isNull(entityIds), 'entityIds ', '') + iif(entities == ''||isNull(entities), 'entities ', '') + iif(service == ''||isNull(service), 'service ', '') + iif(deliverable == ''||isNull(deliverable), 'deliverable ', '') + iif(informationRequestCategory == ''||isNull(informationRequestCategory), 'informationRequestCategory ', '') + iif(name == ''||isNull(name), 'name ', '') + iif(source == ''||isNull(source), 'source ', '') + iif(sapTcode == ''||isNull(sapTcode), 'sapTcode ', '') + iif(glAccountNumber== ''||isNull(glAccountNumber), 'glAccountNumber ', '') + iif(dataPeriodStartDate == ''||isNull(dataPeriodStartDate), 'dataPeriodStartDate ', '') + iif(dataPeriodEndDate == ''||isNull(dataPeriodEndDate), 'dataPeriodEndDate ', '') + iif(layout == ''||isNull(layout), 'layout ', '') + iif(dueDate == ''||isNull(dueDate), 'dueDate ', '') + iif(fileTransferReferenceCode == ''||isNull(fileTransferReferenceCode), 'fileTransferReferenceCode ', '') + iif( processClass == ''||isNull(processClass), 'processClass', ''),\n\t\tfileTransferReferenceCode = rtrim('RC'+toString(fileTransferReferenceCode)+'-'+replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(name, '.', '_'),' ','_'),'-','_'),'/','_'),'?','_'),'|','_'),':','_'),'<','_'),'>','_'),'*','_'),'\\\"','_'),'\\\\','_'),'_')) ~> EmptyColumns\nLayoutGLAccNumberDates filter(or(processClass == 'Simple – Direct extraction', or(processClass == 'Simple –Direct extraction', or(processClass == 'Simple - Direct extraction', processClass == 'Simple - Data formatting'))) && sapTcode == 'FBL3N') ~> BusinessConditions\nFilterCustomAttributesForFBL3N sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['SampleRequest.json'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tkeys:['name'],\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: false,\n\tsaveOrder: 0,\n\tmapColumn(\n\t\tid = Column_1,\n\t\tname = Column_2\n\t),\n\tpartitionBy('hash', 1)) ~> CachedIDs\nSplitCustomAttributes sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['anotherfile.json'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tkeys:['key_id','custId'],\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: false,\n\tsaveOrder: 0,\n\tpartitionBy('hash', 1)) ~> CachedAttributes\nGLAccountNumber sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['LenovoRequest.json'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tid,\n\t\tcountry,\n\t\tentityIds,\n\t\tentities,\n\t\tservice,\n\t\tdeliverable,\n\t\tinformationRequestCategory,\n\t\tname,\n\t\tsource,\n\t\tsapTcode,\n\t\tglAccountNumber,\n\t\tdataPeriodStartDate,\n\t\tdataPeriodEndDate,\n\t\tlayout,\n\t\tdueDate,\n\t\tfileTransferReferenceCode\n\t),\n\tpartitionBy('hash', 1)) ~> storeLenovoRequest\nEmptyColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid as string,\n\t\tcountry as string,\n\t\tentityIds as string,\n\t\tentities as string,\n\t\tservice as string,\n\t\tname as string,\n\t\tsource as string,\n\t\tdataPeriodStartDate as string,\n\t\tdataPeriodEndDate as string,\n\t\tdueDate as string\n\t),\n\tpartitionFileNames:['LenovoInvalidData.json'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tid,\n\t\tcountry,\n\t\tentityIds,\n\t\tentities,\n\t\tservice,\n\t\tdeliverable,\n\t\tinformationRequestCategory,\n\t\tname,\n\t\tsource,\n\t\tsapTcode,\n\t\tglAccountNumber,\n\t\tdataPeriodStartDate,\n\t\tdataPeriodEndDate,\n\t\tlayout,\n\t\tdueDate,\n\t\tfileTransferReferenceCode,\n\t\t{Error Message Header}\n\t),\n\tpartitionBy('hash', 1)) ~> storeInvalidLenovoRequests"
+		}
+	}
+}

@@ -1,0 +1,30 @@
+{
+	"name": "trigger1testforgit",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline3",
+					"type": "PipelineReference"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "ADB-Jefftest",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/demo/blobs/",
+			"ignoreEmptyBlobs": false,
+			"scope": "/subscriptions/273dd566-73a4-4391-95b1-8ed67ddae38d/resourceGroups/irkanwal/providers/Microsoft.Storage/storageAccounts/irkanwalgen2",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

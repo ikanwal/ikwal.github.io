@@ -1,0 +1,29 @@
+{
+	"name": "DS_SFTP_BinaryParameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SFTP_OnPrem",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FilePath": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "DataMovement"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"folderPath": {
+					"value": "@dataset().FilePath",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

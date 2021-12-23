@@ -1,0 +1,11 @@
+{
+	"name": "Azure_blob_trnexe",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://l6cldp1l6mdlexe.blob.core.windows.net"
+		},
+		"annotations": []
+	}
+}

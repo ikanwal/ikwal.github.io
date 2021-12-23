@@ -1,0 +1,119 @@
+{
+	"name": "Json2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "containerblob"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"PLIntegrityLineSegmentNumber": {
+					"type": "string"
+				},
+				"Segment": {
+					"type": "string"
+				},
+				"ReferenceGirthWeld": {
+					"type": "string"
+				},
+				"ReferenceFeatureID": {
+					"type": "string"
+				},
+				"ReferenceILIReportIssueKey": {
+					"type": "string"
+				},
+				"ReferenceNormalizedReportIssueKey": {
+					"type": "string"
+				},
+				"ReferenceSubType": {
+					"type": "string"
+				},
+				"ReferenceDepthMillimeters": {
+					"type": "string"
+				},
+				"ReferenceLengthMillimeters": {
+					"type": "string"
+				},
+				"ReferenceDepthPercentNominal": {
+					"type": "string"
+				},
+				"ReferenceEffectiveAreaRupturePressureRatio": {
+					"type": "string"
+				},
+				"ReferenceFeatureMorphology": {
+					"type": "string"
+				},
+				"ReferenceDepthPercentDent": {
+					"type": "string"
+				},
+				"ReferenceVendor": {
+					"type": "string"
+				},
+				"ReferenceToolType": {
+					"type": "string"
+				},
+				"IsOverlap": {
+					"type": "string"
+				},
+				"TargetFeatureID": {
+					"type": "string"
+				},
+				"TargetILIReportIssueKey": {
+					"type": "string"
+				},
+				"TargetNormalizedReportIssueKey": {
+					"type": "string"
+				},
+				"TargetSubType": {
+					"type": "string"
+				},
+				"TargetDepthMillimeters": {
+					"type": "string"
+				},
+				"TargetLengthMillimeters": {
+					"type": "string"
+				},
+				"TargetDepthPercentNominal": {
+					"type": "string"
+				},
+				"TargetEffectiveAreaRupturePressureRatio": {
+					"type": "string"
+				},
+				"TargetFeatureMorphology": {
+					"type": "string"
+				},
+				"TargetDepthPercentDent": {
+					"type": "string"
+				},
+				"TargetVendor": {
+					"type": "string"
+				},
+				"TargetToolType": {
+					"type": "string"
+				},
+				"ComparisonKey": {
+					"type": "string"
+				},
+				"PipeAssetSnapshotKey": {
+					"type": "string"
+				},
+				"ReferenceNormalizedMSPAbsoluteDistanceMillimeters": {
+					"type": "string"
+				},
+				"TargetNormalizedMSPAbsoluteDistanceMillimeters": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

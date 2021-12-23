@@ -1,0 +1,11 @@
+{
+	"name": "US_PROD_GEN2_AP_BDL",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://csusprodprocessing.dfs.core.windows.net"
+		},
+		"annotations": []
+	}
+}

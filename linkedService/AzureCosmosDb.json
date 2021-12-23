@@ -1,0 +1,18 @@
+{
+	"name": "AzureCosmosDb",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "CosmosDb",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "KeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "PIWorkbenchCosmosDBConnectionString"
+			}
+		},
+		"annotations": []
+	}
+}

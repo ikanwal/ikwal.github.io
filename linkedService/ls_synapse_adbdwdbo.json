@@ -1,0 +1,23 @@
+{
+	"name": "ls_synapse_adbdwdbo",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=c10wdadb01dev.database.windows.net;Initial Catalog=ADOBEv2_DW_Dev;User ID=adbdwdbod",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_amperity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "ampc10wdadb01dADOBEv2DWDevky"
+			}
+		},
+		"connectVia": {
+			"referenceName": "AmperityIntegrationRuntime32",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

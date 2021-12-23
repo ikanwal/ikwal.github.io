@@ -1,0 +1,17 @@
+{
+	"name": "ls_adls",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://adlseus2devamlsam004.dfs.core.windows.net",
+			"servicePrincipalId": "69b9c84b-dbee-41a5-841d-d8e7e512627b",
+			"tenant": "fb6ea403-7cf1-4905-810a-fe5547e98204"
+		},
+		"connectVia": {
+			"referenceName": "SHIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

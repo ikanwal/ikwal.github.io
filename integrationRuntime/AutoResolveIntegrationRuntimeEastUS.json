@@ -1,0 +1,11 @@
+{
+	"name": "AutoResolveIntegrationRuntimeEastUS",
+	"properties": {
+		"type": "Managed",
+		"typeProperties": {
+			"computeProperties": {
+				"location": "AutoResolve"
+			}
+		}
+	}
+}

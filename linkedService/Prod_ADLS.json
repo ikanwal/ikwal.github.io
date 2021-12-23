@@ -1,0 +1,15 @@
+{
+	"name": "Prod_ADLS",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://aabaoriondlsprod.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolve-MemOptimized-8x8-15Min",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

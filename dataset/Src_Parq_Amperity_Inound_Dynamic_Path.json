@@ -1,0 +1,50 @@
+{
+	"name": "Src_Parq_Amperity_Inound_Dynamic_Path",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_amperitycustomer51bqgm_prvtlnk",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Blob_Path": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@dataset().Blob_Path",
+					"type": "Expression"
+				},
+				"container": "mgm-inbound"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "amperity_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "src_sys_id",
+				"type": "UTF8"
+			},
+			{
+				"name": "datasource",
+				"type": "UTF8"
+			},
+			{
+				"name": "cust_acct",
+				"type": "UTF8"
+			},
+			{
+				"name": "Status",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

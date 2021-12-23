@@ -1,0 +1,23 @@
+{
+	"name": "Staging",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ADF_AKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "ADFDbConnectionStringStage"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ProductionLinkedIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "Stage Database - Parameterized and associcated with Azure Key Vault",
+		"annotations": []
+	}
+}

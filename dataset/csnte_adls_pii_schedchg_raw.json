@@ -1,0 +1,61 @@
+{
+	"name": "csnte_adls_pii_schedchg_raw",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Prod_ADLS",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CSNTE_Ingestion_Datasets/ScheduleChanges"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "raw-pii/schedulechanges",
+				"fileSystem": "csnte-pii"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "eventSource",
+				"type": "UTF8"
+			},
+			{
+				"name": "requestingOrganization",
+				"type": "UTF8"
+			},
+			{
+				"name": "requestingSystem",
+				"type": "UTF8"
+			},
+			{
+				"name": "ProcessID",
+				"type": "UTF8"
+			},
+			{
+				"name": "isSeatChange",
+				"type": "UTF8"
+			},
+			{
+				"name": "Outcome",
+				"type": "UTF8"
+			},
+			{
+				"name": "Description",
+				"type": "UTF8"
+			},
+			{
+				"name": "CorrelationId",
+				"type": "UTF8"
+			},
+			{
+				"name": "createDate",
+				"type": "INT96"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

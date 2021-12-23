@@ -1,0 +1,15 @@
+{
+	"name": "LS_ADLS_LandingZone",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://edaaaedle1devland.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "aaedl-shir-datamvt",
+			"type": "IntegrationRuntimeReference"
+		},
+		"annotations": []
+	}
+}

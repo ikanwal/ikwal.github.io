@@ -1,0 +1,199 @@
+{
+	"name": "plac_copy_output_to_ftp",
+	"properties": {
+		"activities": [
+			{
+				"name": "plac_lookup_output_metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_Lookup_OutputMetadata_table]",
+						"storedProcedureParameters": {
+							"table_name": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.table_name",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_outputmetadata_details",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "plac_copy_output_to_sftp",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "plac_lookup_output_metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*.csv",
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"maxConcurrentConnections": 14,
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": true
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_copy_output1",
+						"type": "DatasetReference",
+						"parameters": {
+							"table_name": {
+								"value": "@{activity('plac_lookup_output_metadata').output.firstRow.table_name}",
+								"type": "Expression"
+							},
+							"business_date": {
+								"value": "@pipeline().parameters.business_date",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_sftp_output1",
+						"type": "DatasetReference",
+						"parameters": {
+							"ftp_filepath": {
+								"value": "@{activity('plac_lookup_output_metadata').output.firstRow.ftp_filepath}",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "plac_copy_okfile_output_to_sftp",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "plac_copy_output_to_sftp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*.OK",
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": false
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_copy_output1",
+						"type": "DatasetReference",
+						"parameters": {
+							"table_name": {
+								"value": "@{activity('plac_lookup_output_metadata').output.firstRow.table_name}",
+								"type": "Expression"
+							},
+							"business_date": {
+								"value": "@pipeline().parameters.business_date",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_sftp_output1",
+						"type": "DatasetReference",
+						"parameters": {
+							"ftp_filepath": {
+								"value": "@{activity('plac_lookup_output_metadata').output.firstRow.ftp_filepath}",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"table_name": {
+				"type": "string"
+			},
+			"business_date": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "AMLSAM_PROJECT/GENERIC_PIPELINES/OUTPUT/LAYER_1"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-12-03T02:55:28Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

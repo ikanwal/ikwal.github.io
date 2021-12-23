@@ -1,0 +1,529 @@
+{
+	"name": "PurgeStageIsLoadedTables",
+	"properties": {
+		"description": "This is to purge data from the Stage transaction based Tables.",
+		"activities": [
+			{
+				"name": "ProcessBatchInitiate",
+				"description": "Process Batch Initiate will register the pipeline run in the CDM Framework. As an output it gives process_batch_key to be utilized in the Pipeline workflow.",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 90,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[cdm].[process_batch_initiate_internal]",
+						"storedProcedureParameters": {
+							"channel": {
+								"type": "String"
+							},
+							"comments": {
+								"type": "String"
+							},
+							"limit_process_uid": {
+								"type": "String"
+							},
+							"process_uid": {
+								"type": "String",
+								"value": {
+									"value": "@CONCAT(pipeline().parameters.ProjectName, '::',pipeline().Pipeline)",
+									"type": "Expression"
+								}
+							},
+							"workflow_guid": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							},
+							"workflow_name": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								}
+							},
+							"workflow_version": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.PipelineVersionID",
+									"type": "Expression"
+								}
+							}
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "LoggerDatabase",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "SetProcessBatchKey",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ProcessBatchInitiate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ProcessBatchKey",
+					"value": {
+						"value": "@string(activity('ProcessBatchInitiate').output.firstrow.process_batch_key)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ProcessBatchConclude",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEachSetPurgeStatus",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchConclude",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"process_batch_key": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"source_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"inserted_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"updated_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"deleted_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						},
+						"completed_ind": 1,
+						"unprocessed_record_ct": {
+							"value": "0",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "PurgeStageIsLoadedMaxFile",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "SetProcessBatchKey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_ETLGetPurgeFiles]",
+						"storedProcedureParameters": {
+							"iDataMode": {
+								"type": "String",
+								"value": "Max"
+							},
+							"iTableGroup": {
+								"type": "String",
+								"value": "IsLoaded"
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "LoggerDatabase",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "PurgeStageIsLoadedFileDetail",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "PurgeStageIsLoadedMaxFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[usp_ETLGetPurgeFiles]",
+						"storedProcedureParameters": {
+							"iDataMode": {
+								"type": "String",
+								"value": "Detail"
+							},
+							"iTableGroup": {
+								"type": "String",
+								"value": "IsLoaded"
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "LoggerDatabase",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachSetPurgeStatus",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ForEachPurgeData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('PurgeStageIsLoadedFileDetail').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "LogPurgeStatus",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_EtlInsFileStatusLog]",
+								"storedProcedureParameters": {
+									"iFileId": {
+										"value": {
+											"value": "@item().FileID",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"iFileStatus": {
+										"value": "Purged",
+										"type": "String"
+									},
+									"iFileStatusDescription": {
+										"value": "Purged",
+										"type": "String"
+									},
+									"iFileStatusEnd": {
+										"value": {
+											"value": "@utcnow()",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"iFileStatusStart": {
+										"value": {
+											"value": "@utcnow()",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LoggerDatabase",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "cdmProcessBatchErrorMaxFile",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "PurgeStageIsLoadedMaxFile",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('PurgeStageIsLoadedMaxFile').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('PurgeStageIsLoadedMaxFile').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "cdmProcessBatchErrorFileDetail",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "PurgeStageIsLoadedFileDetail",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('PurgeStageIsLoadedFileDetail').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('PurgeStageIsLoadedFileDetail').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "cdmProcessBatchErrorPurgeData",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEachPurgeData",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('ForEachPurgeData').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('ForEachPurgeData').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "cdmProcessBatchErrorPurgeStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEachSetPurgeStatus",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cdmProcessBatchError",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ProcessBatchKey": {
+							"value": "@variables('ProcessBatchKey')",
+							"type": "Expression"
+						},
+						"ErrorMessage": {
+							"value": "@activity('ForEachSetPurgeStatus').error.message",
+							"type": "Expression"
+						},
+						"ErrorNumber": {
+							"value": "1",
+							"type": "Expression"
+						},
+						"ErrorScope": {
+							"value": "@activity('ForEachSetPurgeStatus').activityrunid",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ForEachPurgeData",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "PurgeStageIsLoadedFileDetail",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('PurgeStageIsLoadedMaxFile').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "PurgeIsLoadedFileData",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_EtlPurgeStageIsLoadedTable]",
+								"storedProcedureParameters": {
+									"iFileID": {
+										"value": {
+											"value": "@item().FileID",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"iTableName": {
+										"value": {
+											"value": "@item().TableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Staging",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ProjectName": {
+				"type": "string",
+				"defaultValue": "Operations"
+			},
+			"PipelineVersionID": {
+				"type": "string",
+				"defaultValue": "1.1"
+			}
+		},
+		"variables": {
+			"ProcessBatchKey": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Orchestration"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-11-08T15:02:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

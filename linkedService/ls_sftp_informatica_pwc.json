@@ -1,0 +1,28 @@
+{
+	"name": "ls_sftp_informatica_pwc",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "a301-4993-3988.ash.pwj.com",
+			"port": 22,
+			"authenticationType": "SshPublicKey",
+			"userName": "corcproc",
+			"privateKeyContent": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_azkv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "informatica-pwc-etdproc"
+			},
+			"skipHostKeyValidation": true
+		},
+		"connectVia": {
+			"referenceName": "SHIR",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "output DCP informatica server connection",
+		"annotations": []
+	}
+}

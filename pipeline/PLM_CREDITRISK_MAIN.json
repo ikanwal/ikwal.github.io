@@ -1,0 +1,947 @@
+{
+	"name": "PLM_CREDITRISK_MAIN",
+	"properties": {
+		"activities": [
+			{
+				"name": "SetRunId",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_run_id",
+					"value": {
+						"value": "@concat(formatDateTime(utcnow(),'yyyyMMddHHmmss'),'_',pipeline().TriggerId)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IsProcesingDateSet",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.folder_yyyymmdd,'default')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "SetProcessingDate",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_folder_yyyymmdd",
+								"value": {
+									"value": "@pipeline().parameters.folder_yyyymmdd",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "SetDefaultProcessingDate",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_folder_yyyymmdd",
+								"value": {
+									"value": "@convertFromUtc(utcnow(),'Eastern Standard Time','yyyy-MM-dd')",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "DeleteTempFolderDeflt",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "SetRunId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "IsProcesingDateSet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_TOEDPP_SRC_DELETE_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@{concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',variables('var_folder_yyyymmdd'))}",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"maxConcurrentConnections": 2,
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "CrdRskInference_OPT_MDT",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "DeleteTempFolderDeflt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(equals(pipeline().parameters.inference_file_status,'MDT'),equals(pipeline().parameters.inference_file_status,'OPT'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "CopyL6InferenceCreditRisk",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.02:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat('prod/',variables('var_folder_yyyymmdd'),'/v*/job*/*/inference/')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "inference.csv",
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"blockSizeInMB": 80
+									}
+								},
+								"enableStaging": false,
+								"skipErrorFile": {
+									"fileMissing": false
+								},
+								"validateDataConsistency": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_TOEDPP_SRC_L6_ABLS",
+									"type": "DatasetReference",
+									"parameters": {
+										"Container": {
+											"value": "@concat(pipeline().parameters.usecase,'-inference')",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@concat('prod/',variables('var_folder_yyyymmdd'))",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_TOEDPP_SNK_ADLS_FLDR",
+									"type": "DatasetReference",
+									"parameters": {
+										"Folder": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'))",
+											"type": "Expression"
+										},
+										"file_system": {
+											"value": "@pipeline().globalParameters.adls_raw_container",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "CrdRskGrndTruth_OPT_MDT",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "DeleteTempFolderDeflt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(equals(pipeline().parameters.groundtruth_file_status,'MDT'),equals(pipeline().parameters.groundtruth_file_status,'OPT'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "CopyL6GroundTruthCrdRsk",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.02:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat('prod/',variables('var_folder_yyyymmdd'),'/v*/job*/*/ground_truth/')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "groundtruth.csv",
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"blockSizeInMB": 80
+									}
+								},
+								"enableStaging": false,
+								"skipErrorFile": {
+									"fileMissing": false
+								},
+								"validateDataConsistency": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_TOEDPP_SRC_L6_ABLS",
+									"type": "DatasetReference",
+									"parameters": {
+										"Container": {
+											"value": "@concat(pipeline().parameters.usecase,'-inference')",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@concat('prod/',variables('var_folder_yyyymmdd'))",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_TOEDPP_SNK_ADLS_FLDR",
+									"type": "DatasetReference",
+									"parameters": {
+										"Folder": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'))",
+											"type": "Expression"
+										},
+										"file_system": {
+											"value": "@pipeline().globalParameters.adls_raw_container",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "GetCrdRskVersionMtdt",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "CrdRskInference_OPT_MDT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "CrdRskGrndTruth_OPT_MDT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_TOEDPP_SRC_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'))",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEachInfrVersions",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetCrdRskVersionMtdt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetCrdRskVersionMtdt').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "IfBiggerInfrVersion",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "SetInfrTemp",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@greater(int(replace(variables('var_infr_temp'),'v','')),int(replace(variables('var_infr_version'),'v','')))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "SetBiggerInfrVersion",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "var_infr_version",
+											"value": {
+												"value": "@variables('var_infr_temp')",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SetInfrTemp",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "var_infr_temp",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "GetCrdRskPartitionMtdt",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "ForEachInfrVersions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_TOEDPP_SRC_ADLS_FLDR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Folder": {
+								"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'),'/',variables('var_infr_version'),'/job*/')",
+								"type": "Expression"
+							},
+							"file_system": {
+								"value": "@pipeline().globalParameters.adls_raw_container",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEachPartition",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetCrdRskPartitionMtdt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetCrdRskPartitionMtdt').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "TempCopyPartitionFolderInfrence",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'),'/',variables('var_infr_version'),'/job*/',item().name,'/*/')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "inference.csv",
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_TOEDPP_SRC_ADLS_FILE",
+									"type": "DatasetReference",
+									"parameters": {
+										"file_system": {
+											"value": "@pipeline().globalParameters.adls_raw_container",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'),'/',variables('var_infr_version'),'/job*/',item().name,'/*/')",
+											"type": "Expression"
+										},
+										"File": "inference.csv"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_TOEDPP_SRC_ADLS_FILE",
+									"type": "DatasetReference",
+									"parameters": {
+										"file_system": {
+											"value": "@pipeline().globalParameters.adls_raw_container",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)",
+											"type": "Expression"
+										},
+										"File": {
+											"value": "@concat('credit_risk_v2_inference-report-',replace(item().name,'-',''),'000000.csv')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "TempCopyPartitionFolderGroundtruth",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'),'/',variables('var_infr_version'),'/job*/',item().name,'/*/')",
+											"type": "Expression"
+										},
+										"wildcardFileName": "groundtruth.csv",
+										"deleteFilesAfterCompletion": false
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_TOEDPP_SRC_ADLS_FILE",
+									"type": "DatasetReference",
+									"parameters": {
+										"file_system": {
+											"value": "@pipeline().globalParameters.adls_raw_container",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/raw/',pipeline().parameters.usecase,'-inference/',variables('var_folder_yyyymmdd'),'/',variables('var_run_id'),'/',variables('var_infr_version'),'/job*/',item().name,'/*/')",
+											"type": "Expression"
+										},
+										"File": "groundtruth.csv"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_TOEDPP_SRC_ADLS_FILE",
+									"type": "DatasetReference",
+									"parameters": {
+										"file_system": {
+											"value": "@pipeline().globalParameters.adls_raw_container",
+											"type": "Expression"
+										},
+										"Folder": {
+											"value": "@concat(pipeline().parameters.adls_root_folder,'/temp/',pipeline().parameters.usecase,'/',pipeline().parameters.folder_yyyymmdd)",
+											"type": "Expression"
+										},
+										"File": {
+											"value": "@concat('groundtruth-',replace(item().name,'-',''),'000000.csv')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "log_inference_pickup_at_event",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "TempCopyPartitionFolderInfrence",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PLU_LOG_EVENT_INFO",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"run_id": {
+										"value": "@variables('var_run_id')",
+										"type": "Expression"
+									},
+									"event_id": "usecase.inference_pickup_at",
+									"event_source": {
+										"value": "@pipeline().parameters.usecase",
+										"type": "Expression"
+									},
+									"event_value": {
+										"value": "@convertFromUtc(utcnow(),'Eastern Standard Time')",
+										"type": "Expression"
+									},
+									"application": {
+										"value": "@pipeline().globalParameters.inbound_adf_application_name",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "log_groundtruth_report_pickup_at_event",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "TempCopyPartitionFolderGroundtruth",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PLU_LOG_EVENT_INFO",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"run_id": {
+										"value": "@variables('var_run_id')",
+										"type": "Expression"
+									},
+									"event_id": "usecase.groundtruth_report_pickup_at",
+									"event_source": {
+										"value": "@pipeline().parameters.usecase",
+										"type": "Expression"
+									},
+									"event_value": {
+										"value": "@convertFromUtc(utcnow(),'Eastern Standard Time')",
+										"type": "Expression"
+									},
+									"application": {
+										"value": "@pipeline().globalParameters.inbound_adf_application_name",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ExecuteCrdRsk_PLC_FILE_CREATE",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEachPartition",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PLC_TOEDPP_CNTRL_FILE_CREATE",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"usecase": {
+							"value": "@pipeline().parameters.usecase",
+							"type": "Expression"
+						},
+						"folder_yyyymmdd": {
+							"value": "@variables('var_folder_yyyymmdd')",
+							"type": "Expression"
+						},
+						"adls_root_folder": {
+							"value": "@pipeline().parameters.adls_root_folder",
+							"type": "Expression"
+						},
+						"control_file_name": "creditrisk_control_file.csv"
+					}
+				}
+			},
+			{
+				"name": "ExecuteCrdRsk_PLC_COPY_TO_VM",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ExecuteCrdRsk_PLC_FILE_CREATE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PLC_TOEDPP_COPY_TO_VM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"usecase": "credit-risk",
+						"folder_yyyymmdd": {
+							"value": "@variables('var_folder_yyyymmdd')",
+							"type": "Expression"
+						},
+						"adls_root_folder": {
+							"value": "@pipeline().parameters.adls_root_folder",
+							"type": "Expression"
+						},
+						"stagingvm_path": "/eim/edpp/inbound/lz/creditrisk"
+					}
+				}
+			},
+			{
+				"name": "log_start_event",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "SetRunId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PLU_LOG_EVENT_INFO",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"run_id": {
+							"value": "@variables('var_run_id')",
+							"type": "Expression"
+						},
+						"event_id": "usecase.start_time",
+						"event_source": {
+							"value": "@pipeline().parameters.usecase",
+							"type": "Expression"
+						},
+						"event_value": {
+							"value": "@convertFromUtc(utcnow(),'Eastern Standard Time')",
+							"type": "Expression"
+						},
+						"application": {
+							"value": "@pipeline().globalParameters.inbound_adf_application_name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "log_end_event",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ExecuteCrdRsk_PLC_COPY_TO_VM",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PLU_LOG_EVENT_INFO",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"run_id": {
+							"value": "@variables('var_run_id')",
+							"type": "Expression"
+						},
+						"event_id": "usecase.end_time",
+						"event_source": {
+							"value": "@pipeline().parameters.usecase",
+							"type": "Expression"
+						},
+						"event_value": {
+							"value": "@convertFromUtc(utcnow(),'Eastern Standard Time')",
+							"type": "Expression"
+						},
+						"application": {
+							"value": "@pipeline().globalParameters.inbound_adf_application_name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "log_success_event",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log_end_event",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PLU_LOG_EVENT_INFO",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"run_id": {
+							"value": "@variables('var_run_id')",
+							"type": "Expression"
+						},
+						"event_id": "usecase.status",
+						"event_source": {
+							"value": "@pipeline().parameters.usecase",
+							"type": "Expression"
+						},
+						"event_value": {
+							"value": "success",
+							"type": "Expression"
+						},
+						"application": {
+							"value": "@pipeline().globalParameters.inbound_adf_application_name",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"usecase": {
+				"type": "string",
+				"defaultValue": "credit-risk"
+			},
+			"folder_yyyymmdd": {
+				"type": "string",
+				"defaultValue": "default"
+			},
+			"adls_root_folder": {
+				"type": "string",
+				"defaultValue": "inference"
+			},
+			"inference_file_status": {
+				"type": "string",
+				"defaultValue": "OPT"
+			},
+			"groundtruth_file_status": {
+				"type": "string",
+				"defaultValue": "NOT"
+			}
+		},
+		"variables": {
+			"var_run_id": {
+				"type": "String"
+			},
+			"var_infr_version": {
+				"type": "String",
+				"defaultValue": "v0"
+			},
+			"var_infr_temp": {
+				"type": "String",
+				"defaultValue": "v0"
+			},
+			"var_folder_yyyymmdd": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "TOEDPPP/credit-risk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-07-14T01:36:42Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,11 @@
+{
+	"name": "LS_KVLT_ZNEUDL1P40INGing_kvl00",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://ZNEUDL1P40INGing-kvl00.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}
