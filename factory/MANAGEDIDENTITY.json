@@ -1,0 +1,9 @@
+{
+	"name": "MANAGEDIDENTITY",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9682a9b1-90e0-44d9-b900-6b4606986cf5",
+		"tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+	}
+}

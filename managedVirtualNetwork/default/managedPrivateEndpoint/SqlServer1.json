@@ -1,0 +1,10 @@
+{
+	"name": "SqlServer1",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/eced600c-1185-4ae6-8b70-868d11f0e810/resourceGroups/v-irajkResourceGroup/providers/Microsoft.Sql/servers/v-irajk",
+		"groupId": "sqlServer",
+		"fqdns": [
+			"v-irajk.database.windows.net"
+		]
+	}
+}
