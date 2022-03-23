@@ -15,6 +15,12 @@
 					"referenceName": "ADB-Jefftest",
 					"type": "PipelineReference"
 				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline3345",
+					"type": "PipelineReference"
+				}
 			}
 		],
 		"type": "BlobEventsTrigger",
